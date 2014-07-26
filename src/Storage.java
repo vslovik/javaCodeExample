@@ -6,8 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Vector;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 public class Storage {
 	
@@ -44,6 +47,39 @@ public class Storage {
 		}
 	}
 	
+	public void importFromCsv(String file) 
+	{
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ";"; 
+		try {	 
+			br = new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
+				String[] visitData = line.split(cvsSplitBy);
+				try {
+					Visit visit = new Visit(visitData);
+					System.out.println(visit.toString());
+					put(visit);
+				} catch(ParseException e) {
+					e.printStackTrace();
+				}
+			}		
+			save();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	public void put(Visit visit)
 	{
 		if (!visits.contains(visit)) {
@@ -72,6 +108,8 @@ public class Storage {
 	public Vector<Visit> get(String name)
 	{
 		Vector<Visit> result = new Vector<Visit>();
+		if(result.size() == 0)
+			return result;
 		for( Visit v : visits ) {
 			String vName = v.getName();
 			if(vName.equals(name))
@@ -107,6 +145,7 @@ public class Storage {
 					);
 			output.writeObject(visits);
 			output.close();
+			System.out.println("SAVE");
 			changed = false;
 			return true;
 		} catch (IOException e) {

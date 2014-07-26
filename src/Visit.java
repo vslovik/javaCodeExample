@@ -36,6 +36,33 @@ public class Visit implements Serializable {
 		this.visitorNumber = visitorNumber;
 	}
 	
+	Visit(String[] data) throws ParseException {
+		SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");				  
+		this.name = data[0];
+		this.date = df.parse(data[1]);
+		//visit.setVisitorNumber(visitData[2]);	// ToDo
+		this.visitorNumber = 3;
+		String visitorsString = data[5];
+		String[] visitors = visitorsString.split(",");
+		Vector<String> visitorNames = new Vector<String>();
+		for(int i = 0; i < visitors.length; i++) {
+			System.out.println(visitors[i]);
+			visitorNames.add(visitors[i]);
+		}
+		System.out.println(data.toString());
+		//System.out.println(visitorNames.toString());
+		if (visitorNames.size() > 0) {
+			setVisitorNumber(visitorNames.size());
+			setVisitorNames(visitorNames);
+			if (data[3] == "YES") {
+				setGuide();
+			}
+			if (data[4] == "YES") {
+				setReduction();
+			}
+		}		
+	}
+	
 	public String getName() 
 	{
 		return name;
@@ -69,7 +96,7 @@ public class Visit implements Serializable {
 	throws ClientException
 	{
 		System.out.println("Date dd/mm/yy:");
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yy");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 		try {
 			Date date = dateFormat.parse(input.nextLine());
 			if (date.compareTo(new Date()) < 0)
@@ -175,6 +202,8 @@ public class Visit implements Serializable {
 		if(hasReduction())
 			description += "(reduced)";
 		description += ": " + getPrice() + " euro";	
+		if(hasGuide() || hasReduction())
+			description += visitorNames.toString();
 		
 		return description;
 	}

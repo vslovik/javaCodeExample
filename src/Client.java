@@ -1,3 +1,4 @@
+
 import java.util.Scanner;
 import java.util.Date;
 import java.text.*;
@@ -217,6 +218,8 @@ public class Client {
 	}
 
 	private static void show(Vector<Visit> visits) {
+		if(visits.size() == 0)
+			return;
 		for (Visit v : visits)
 			System.out.println(v);
 	}
