@@ -23,18 +23,18 @@ class MouseSpy implements MouseListener {
 	}
 }
 
-class AppFrame extends JFrame {
-	JPanel nordPnl = new JPanel();
-	JPanel centroPnl = new JPanel();
-	JPanel sudPnl = new JPanel();
-	//JLabel infoLbl = new Label("Selezionare:");
-	JCheckBox opz1Chk = new JCheckBox("Opz1");
-	JCheckBox opz2Chk = new JCheckBox("Opz2");
-	JButton okBtn = new JButton("OK");
-	JButton cancBtn = new JButton("Annulla");
-
-	public AppFrame() {
-		super("Esempio");
+//class AppFrame extends JFrame {
+//	JPanel nordPnl = new JPanel();
+//	JPanel centroPnl = new JPanel();
+//	JPanel sudPnl = new JPanel();
+//	//JLabel infoLbl = new Label("Selezionare:");
+//	JCheckBox opz1Chk = new JCheckBox("Opz1");
+//	JCheckBox opz2Chk = new JCheckBox("Opz2");
+//	JButton okBtn = new JButton("OK");
+//	JButton cancBtn = new JButton("Annulla");
+//
+//	public AppFrame() {
+//		super("Esempio");
 //		centroPnl.setLayout(new GridLayout(2, 1));
 //		centroPnl.add(opz1Chk);
 //		centroPnl.add(opz2Chk);
@@ -48,11 +48,11 @@ class AppFrame extends JFrame {
 //		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		//setLocation((dim.getWidth() - this.getWidth()) / 2,
 		//		(dim.getHeight() - this.getHeight()) / 2);
-		this.addMouseListener(new MouseSpy());
-		setSize(200,200);
-		setVisible(true);
-	}
-}
+//		this.addMouseListener(new MouseSpy());
+//		setSize(200,200);
+//		setVisible(true);
+//	}
+//}
 
 //class AppFrame extends JFrame
 //{

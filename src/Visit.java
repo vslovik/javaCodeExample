@@ -121,8 +121,8 @@ public class Visit implements Serializable {
 	}
 	
 	public void setVisitorNumber(Scanner input)
-			throws ClientException {
-		System.out.println("Type number of visitors:");
+		throws ClientException {
+			System.out.println("Type number of visitors:");
 		try {
 			this.visitorNumber = input.nextInt();
 		} catch (InputMismatchException e) {
