@@ -154,6 +154,14 @@ public class Visit implements Serializable {
 		}
 	}
 	
+	public void addVisitorName(String name)
+	{
+		if(name.length() == 0)
+			return;
+		this.visitorNames.add(name);
+		this.visitorNumber = visitorNames.size();
+	}
+	
 	public void setVisitorNames(Vector<String> visitorNames)
 	{
 		if(visitorNames.size() == 0)

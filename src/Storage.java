@@ -108,7 +108,7 @@ public class Storage {
 	public Vector<Visit> get(String name)
 	{
 		Vector<Visit> result = new Vector<Visit>();
-		if(result.size() == 0)
+		if(name.length() == 0)
 			return result;
 		for( Visit v : visits ) {
 			String vName = v.getName();

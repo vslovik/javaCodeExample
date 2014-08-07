@@ -17,6 +17,7 @@ import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -31,7 +32,6 @@ import javax.swing.border.EtchedBorder;
 // ToDo 
 // 1. Focus to text field
 // 2. Enter button input
-@SuppressWarnings("serial")
 public class BookPanel extends JPanel implements ActionListener {
 	
 	// Field labels: five steps
@@ -42,9 +42,13 @@ public class BookPanel extends JPanel implements ActionListener {
 	private static final String LABEL_REDUCTION = "Would you ask for reduction?"; // 5.
 	private static final String LABEL_PRICE = "Price: "; // 6.
 	private static final String LABEL_SUCCESS = "You booked your visit!"; // 7.
+	private static final String LABEL_VISITOR = "Visitors names: "; // 5.
+
 	
-	// Error label
-	private JLabel errorLabel = new JLabel();
+	String[] steps = {"NAME", "DATE", "NUMBER", "GUIDE", "REDUCTION", "PRICE", "SUCCESS"};
+	int step = 0;
+	
+	JLabel errorLabel = new JLabel();
 	
 	// Label
 	private JLabel label = new JLabel();
@@ -69,9 +73,12 @@ public class BookPanel extends JPanel implements ActionListener {
     
     // Status lines
     Vector<String> statusLines = new Vector<String>();
-    
+       
     // Status list pane
     JPanel listPane = new JPanel();
+    
+    // List of visitors names
+    Vector<String> visitors = new Vector<String>();
     
     // Storage
     private Storage storage;
@@ -97,37 +104,31 @@ public class BookPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		switch(e.getActionCommand()) {
 		case "NEW":
-			showStep("NAME");
+			renewStatusPanel();
+			step = 0;
+			visitors = new Vector<String>();
+			showStep(steps[step]);
 			break;
 		case "NAME": 
-			if(acceptName()) {
-				showStep("DATE");
-			} 
+			acceptName();			
 			break;
 		case "DATE":
-			if(acceptDate()) {
-				showStep("NUMBER");
-			} 
+			acceptDate();
 			break;
 		case "NUMBER":
-			if(acceptNumber()) {
-				showStep("GUIDE");
-			} 
+			acceptNumber();				
 			break;
 		case "GUIDE":
-			if(acceptGuide()) {
-				showStep("REDUCTION");
-			} 
+			acceptGuide();				
 			break;
 		case "REDUCTION":
-			if(acceptReduction()) {
-				showStep("PRICE");
-			} 
+			acceptReduction();
 			break;
-		case "SUCCESS":
-			if(doSave()) {
-				showStep("SUCCESS");
-			}
+		case "VISITOR":
+			acceptVisitor();
+			break;
+		case "PRICE":
+			doSave();				
 			break;
 		}
 	}
@@ -139,27 +140,21 @@ public class BookPanel extends JPanel implements ActionListener {
 	 * 
 	 * @return
 	 */
-	private boolean acceptName() {
-		// System.out.println(textField.getText());
+	private void acceptName() {
 		if (textField.getText().length() == 0) {
-			errorLabel.setText("Name can not be empty!");
-			return false;
+			showError("Name can not be empty!");			
 		} else {
 			visit.setName(textField.getText());
-//			statusLabel.setText(statusLabel.getText() + "Name: " + textField.getText());
-			statusLines.add("Name: " + textField.getText());
+			showStatus("Name: " + textField.getText());
 			textField.setText("");
 			textField.repaint();
-			errorLabel.setText("");
-			errorLabel.repaint();		
-			return true;
+			showStep(steps[++step]);
 		}
 	}
 	
-	private boolean acceptDate() {
+	private void acceptDate() {
 		if (textField.getText().length() == 0) {
-			errorLabel.setText("Date can not be empty!");
-			return false;
+			showError("Date can not be empty!");
 		} else {
 			String text = textField.getText();
 			try {
@@ -167,132 +162,122 @@ public class BookPanel extends JPanel implements ActionListener {
 				Date date = dateFormat.parse(text);
 				if (date.compareTo(new Date()) > 0) {
 					visit.setDate(date);
-//					statusLabel.setText(statusLabel.getText() + "<br>Date: " + text);
-//					statusLabel.setVisible(true);
-					statusLines.add("Date: " + text);
+					showStatus("Date: " + text);
 					textField.setText("");
 					textField.repaint();
-					errorLabel.setText("");
-					errorLabel.repaint();
-					return true;
+					showStep(steps[++step]);
 				} else {
-//					statusLabel.setVisible(false);
-					errorLabel.setText("You should choose the date in the future");
-					errorLabel.repaint();
-					return false;
+					showError("You should choose the date in the future");
 				}
 			} catch (ParseException e) {
-//				statusLabel.setVisible(false);
-				errorLabel.setText("Wrong data format! Should be dd/mm/yy");
-				errorLabel.repaint();
-				return false;
+				showError("Wrong data format! Should be dd/mm/yy");
 			}
 		}
 	}
 	
-	private boolean acceptNumber() {
+	private void acceptNumber() {
 		try {
 			int number = Integer.parseInt(textField.getText());
 			if (number == 0) {
-//				statusLabel.setVisible(false);
-				errorLabel.setText("Enter a valid number");
-				errorLabel.repaint();
-				return false;
+				showError("Enter a valid number");
 			}
 			visit.setVisitorNumber(number);
-			statusLines.add("Number of visitors: " + textField.getText());
-			showStatus();
+			showStatus("Number of visitors: " + textField.getText());
 			textField.setText("");
 			textField.repaint();
-			errorLabel.setText("");
-			errorLabel.repaint();
-			return true;
-
+			showStep(steps[++step]);
 		} catch (NumberFormatException e) {
-			errorLabel.setText("Enter a valid number");
-			errorLabel.repaint();
-			return false;
+			showError("Enter a valid number");
 		}
 	}
 	
-	private boolean acceptGuide()
+	private void acceptGuide()
 	{
 		if (yesRadio.isSelected()) {
-			visit.setGuide();
-			statusLines.add(" Guide needed: " + yesRadio.getText());
-			showStatus();
+			showStatus("Guide needed: " + yesRadio.getText());
 			yesRadio.setSelected(false);
-			return true;
+			showStep("VISITOR");
 		} else if (noRadio.isSelected()) {
-			statusLines.add("Guide needed: " + noRadio.getText());
-			showStatus();
+			showStatus("Guide needed: " + noRadio.getText());
 			noRadio.setSelected(false);
-			return true;
+			showStep(steps[++step]);
 		} else {
-			errorLabel.setText("Tell if guide is needed");
-			errorLabel.repaint();
-			return false;
+			showError("Tell if guide is needed");
 		}
 	}
 	
-	private boolean acceptReduction()
+	private void acceptReduction()
 	{
 		if (yesRadio.isSelected()) {
-			visit.setReduction(); 
-			statusLines.add("Reduction requested: " + yesRadio.getText());
-			showStatus();
+			showStatus("Reduction requested: " + yesRadio.getText());
 			yesRadio.setSelected(false);
-			return true;
+			if(visit.getVisitorNames().size() == 0) {
+				showStep("VISITOR");
+			} else {
+				showStep("PRICE");
+			}
 		} else if (noRadio.isSelected()) {
-			statusLines.add("Reduction requested: " + noRadio.getText());
-			showStatus();
+			showStatus("Reduction requested: " + noRadio.getText());
 			noRadio.setSelected(false);
-			return true;
+			showStep("PRICE");
 		} else {
-			errorLabel.setText("Tell if reduction is requested");
-			errorLabel.repaint();
-			return false;
+			showError("Tell if reduction is requested");
 		}
 	}
 	
-	
-	private boolean acceptNames()
+	private boolean acceptVisitor()
 	{
+		if (textField.getText().length() == 0) {
+			showError("Name can not be empty!");
+		} else {
+			visitors.add(textField.getText());
+			showStatus("Visitor " + Integer.toString(visitors.size()) + ": " + textField.getText());
+			textField.setText("");
+			textField.repaint();
+			if(visit.getVisitorNumber() == visitors.size()) {
+				visit.setVisitorNames(visitors);
+				if(steps[step] == "GUIDE") {
+					visit.setGuide();
+				} else {
+					visit.setReduction();
+				}
+				showStep(steps[++step]);
+			} else {
+				showStep("VISITOR");
+			}
+		}
+		
 		return true;
 	}
 	
-	private boolean doSave()
+	private void doSave()
 	{
 		storage.put(visit);
 		if(!storage.save()) {
-			errorLabel.setText("System error!");
-			errorLabel.repaint();
-			return false; 
+			showError("System error!");
 		} else {
-			statusLines.add("Price: " + visit.getPrice());
-			showStatus();
-			return true;
+			showStep("SUCCESS");
 		}
 	}
 	
 	/**
-	 * Show current step
 	 * 
 	 * @param step
 	 */
-	private void showStep(String step) {
-		switch (step) {
-		case "NAME":
+	private void showStep(String stepName) {
+		switch (stepName) {
+		case "NAME":			
 			label.setText(LABEL_NAME);
-			nextButton.setActionCommand("NAME");
+			textField.setVisible(true);
+			nextButton.setActionCommand(stepName);
 			break;
 		case "DATE":
 			label.setText(LABEL_DATE);
-			nextButton.setActionCommand("DATE");
+			nextButton.setActionCommand(stepName);
 			break;
 		case "NUMBER":
 			label.setText(LABEL_NUMBER);
-			nextButton.setActionCommand("NUMBER");
+			nextButton.setActionCommand(stepName);
 			break;
 		case "GUIDE":
 			label.setText(LABEL_GUIDE);
@@ -300,20 +285,38 @@ public class BookPanel extends JPanel implements ActionListener {
 			yesRadio.setVisible(true);
 			noRadio.setVisible(true);
 			this.repaint();
-			nextButton.setActionCommand("GUIDE");
+			nextButton.setActionCommand(stepName);
 			break;
 		case "REDUCTION":
-			label.setText(LABEL_REDUCTION);
-			nextButton.setActionCommand("REDUCTION");
+			if(visit.getVisitorNumber() < Visit.applyReductionTreshold) {
+				System.out.println(visit.getVisitorNumber());
+				System.out.println(Visit.applyReductionTreshold);
+				showStep(steps[++step]);
+			} else {
+				label.setText(LABEL_REDUCTION);
+				textField.setVisible(false);
+				yesRadio.setVisible(true);
+				noRadio.setVisible(true);
+				nextButton.setActionCommand(stepName);
+			}
 			break;	
+		case "VISITOR":
+			label.setText(LABEL_VISITOR + " " + Integer.toString(visitors.size() + 1) + ": ");
+			textField.setVisible(true);
+			yesRadio.setVisible(false);
+			noRadio.setVisible(false);
+			nextButton.setActionCommand(stepName);
+			break;
 		case "PRICE":
 			label.setText(LABEL_PRICE + visit.getPrice() + " euro");
+			textField.setVisible(false);
 			yesRadio.setVisible(false);
 			noRadio.setVisible(false);
 			nextButton.setText("Save");
-			nextButton.setActionCommand("SUCCESS");
+			nextButton.setActionCommand(stepName);
 			break;	
 		case "SUCCESS":
+			showStatus(LABEL_PRICE + visit.getPrice() + " euro");
 			label.setText(LABEL_SUCCESS);
 			nextButton.setText("New Booking");
 			nextButton.setActionCommand("NEW");
@@ -329,7 +332,7 @@ public class BookPanel extends JPanel implements ActionListener {
 		this.setLayout(new BorderLayout());		
 		
 		// North panel
-		initErrorPanel();
+		initStatusPanel();
 		
 		// Center panel
 		initInputPanel();
@@ -338,45 +341,84 @@ public class BookPanel extends JPanel implements ActionListener {
 		initNextButtonPanel();
 	}
 	
-	private void showStatus() {
-		if (statusLines.size() == 0)
-			return;
-
-		JList<String> list = new JList<String>(statusLines);
+//	private void showStatus() {
+//		
+//		if (statusLines.size() == 0)
+//			return;
+//
+//		
+//		list.setFont(new Font("Verdana", Font.BOLD, 6));
+//		list.setForeground(new Color(66, 163, 14));
+//		list.setBorder(new EmptyBorder(10, 10, 10, 10));
+//		
+//		list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+//		JScrollPane listScroller = new JScrollPane(list);
+//		listScroller.setAlignmentX(LEFT_ALIGNMENT);
+//
+//		listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
+//		listPane.setPreferredSize(new Dimension(300, 300));
+//		JLabel label = new JLabel("Your booking: ");
+//			
+//		label.setLabelFor(list);
+//		listPane.add(label);
+//		listPane.add(Box.createRigidArea(new Dimension(0, 5)));
+//		listPane.add(listScroller);
+//		listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+//		listPane.setVisible(true);
+//
+//		for (String s : statusLines) {
+//			System.out.println(s);
+//		}
+//	}
+	
+	private void renewStatusPanel()
+	{
+		cleanStatusPanel();
+		statusLines = new Vector<String>();
+		statusLines.add("Your visit: ");
+	}
+	
+	private void cleanStatusPanel()
+	{
+		listPane.removeAll();
+		errorLabel.setVisible(false);
+	}
+	
+	
+	private void showStatus(String line)
+	{
+		cleanStatusPanel();
 		
-		list.setFont(new Font("Verdana", Font.BOLD, 6));
+		statusLines.add(line);
+		
+		JList<String> list = new JList<String>(statusLines);
+		list = new JList<String>(statusLines);
+		list.setFont(new Font("Verdana", Font.BOLD, 12));
 		list.setForeground(new Color(66, 163, 14));
 		list.setBorder(new EmptyBorder(10, 10, 10, 10));
 		
-		list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		JScrollPane listScroller = new JScrollPane(list);
-		listScroller.setAlignmentX(LEFT_ALIGNMENT);
-
-		listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-		listPane.setPreferredSize(new Dimension(300, 300));
-		JLabel label = new JLabel("Your booking: ");
-			
-		label.setLabelFor(list);s
-		listPane.add(label);
-		listPane.add(Box.createRigidArea(new Dimension(0, 5)));
-		listPane.add(listScroller);
-		listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		listPane.setVisible(true);
-
-		for (String s : statusLines) {
-			System.out.println(s);
-		}
+		listPane.add(list);
 	}
 	
-	private void initErrorPanel()
-	{
-		add(northPnl, BorderLayout.NORTH);
-		
+	private void showError(String message) {
+		cleanStatusPanel();
+
+		errorLabel.setText(message);
 		errorLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 		errorLabel.setForeground(new Color(230, 36, 36));
 		errorLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
-		northPnl.add(errorLabel);
+		errorLabel.setVisible(true);
 
+	}
+	
+	
+	private void initStatusPanel()
+	{
+		statusLines.add("Your visit: ");
+		northPnl.add(listPane);
+		northPnl.add(errorLabel);
+		
+		add(northPnl, BorderLayout.NORTH);
 	}
 	
 	private void initInputPanel()
@@ -388,9 +430,13 @@ public class BookPanel extends JPanel implements ActionListener {
 		label.setBorder(new EmptyBorder(10, 10, 10, 10));
 		centerPnl.add(label);
 		centerPnl.add(textField);
+		
+		ButtonGroup group = new ButtonGroup();
+		group.add(yesRadio);
+		group.add(noRadio);
+		
 		centerPnl.add(yesRadio);
 		centerPnl.add(noRadio);
-		centerPnl.add(listPane);
 		
 		yesRadio.setVisible(false);
 		noRadio.setVisible(false);

@@ -19,6 +19,8 @@ import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -46,6 +48,9 @@ public class LookPanel extends JPanel implements ActionListener {
 	// Error label
 	private JLabel errorLabel = new JLabel();
 	
+	// Status label
+	private JLabel statusLabel = new JLabel();
+	
 	// Label
 	private JLabel label = new JLabel();
 	
@@ -63,6 +68,9 @@ public class LookPanel extends JPanel implements ActionListener {
     // Next button
 	private JButton nextButton = new JButton("Next");
 	
+    // Cancel button
+	private JButton cancelButton = new JButton("-");
+	
 	// Three panels to place elements
     private JPanel northPnl  = new JPanel();
     private JPanel centerPnl = new JPanel();
@@ -72,17 +80,24 @@ public class LookPanel extends JPanel implements ActionListener {
     private Storage storage;
     
     // Visits
-    Vector<Visit> visits = new Vector<Visit>();
+    private Vector<Visit> visits = new Vector<Visit>();
     
     // Visitor list pane
-    JPanel listPane = new JPanel();
+    private JPanel listPane = new JPanel();
     
     // Current Page
-    int currentPage = 1;
+    private int currentPage = 1;
+    
+    // List of visits to show
+    private JList<Visit> list;
+    
+    private JScrollPane listScroller;
 
     final static int extraWindowWidth = 100;
     
 	private static final long serialVersionUID = 1L;
+	
+	private DefaultListModel<Visit> listModel;
 
 	//Make the panel wider than it really needs, so
     //the window's wide enough for the tabs to stay
@@ -122,6 +137,12 @@ public class LookPanel extends JPanel implements ActionListener {
 		case "DATE":
 			acceptDate();
 			break;
+		case "CANCEL":
+			cancelVisit();
+			break;
+		case "SAVE":
+			saveVisits();
+			break;
 		}
 	}
 	
@@ -136,7 +157,6 @@ public class LookPanel extends JPanel implements ActionListener {
 			showStep("SHOW");
 		} else {
 			errorLabel.setText("Choose one option!");
-			errorLabel.repaint();
 		}
 	}
 	
@@ -150,7 +170,6 @@ public class LookPanel extends JPanel implements ActionListener {
 			showStep("DATE");
 		} else {
 			errorLabel.setText("Tell if reduction is requested");
-			errorLabel.repaint();
 		}
 	}
 	
@@ -176,15 +195,53 @@ public class LookPanel extends JPanel implements ActionListener {
 					showStep("SHOW");
 				} else {
 					errorLabel.setText("You should choose the date in the future");
-					errorLabel.repaint();
 				}
 			} catch (ParseException e) {
 				errorLabel.setText("Wrong data format! Should be dd/mm/yy");
-				errorLabel.repaint();
 			}
 		}
 	}
+	
+	private void cancelVisit()
+	{
+		int index = list.getSelectedIndex();
+		if(index < 0)
+			return;
+		System.out.println(index);
+		
+		Visit v = listModel.getElementAt(index);
+		System.out.println(v + "--------" + Integer.toString(visits.indexOf(v)));
+		
+		storage.delete(listModel.getElementAt(index));
+		listModel.removeElementAt(index);
 
+	    nextButton.setText("Save");
+	    nextButton.setActionCommand("SAVE");
+	}
+	
+	private void saveVisits()
+	{
+		if(!storage.save()) {
+			showError("System error!");
+		} else {
+			showSuccess("Success!");
+		}
+	    nextButton.setText("New Look Up");
+	    nextButton.setActionCommand("NEW");
+	}
+
+	private void showError(String message)
+	{
+		errorLabel.setText(message);
+		errorLabel.setVisible(true);
+	}
+	
+	private void showSuccess(String message)
+	{
+		statusLabel.setText(message);
+		statusLabel.setVisible(true);
+	}
+	
 	/**
 	 * Show current step
 	 * 
@@ -192,6 +249,7 @@ public class LookPanel extends JPanel implements ActionListener {
 	 */
 	private void showStep(String step) {
 		errorLabel.setVisible(false);
+		statusLabel.setVisible(false);
 		switch (step) {
 		case "CHOICE":
 			label.setText(LABEL_CHOOSE);
@@ -249,12 +307,13 @@ public class LookPanel extends JPanel implements ActionListener {
 	
 
 	
+	@SuppressWarnings("serial")
 	private void showVisits() {
-		if (visits.size() == 0)
+		if (visits.size() == 0) {
+			showSuccess("No visits found");
 			return;
-
-		@SuppressWarnings("serial")
-		JList<Visit> list = new JList<Visit>(visits) {
+		}
+		list = new JList<Visit>() {
             //Subclass JList to workaround bug 4832765, which can cause the
             //scroll pane to not let the user easily scroll up to the beginning
             //of the list.  An alternative would be to set the unitIncrement
@@ -284,16 +343,21 @@ public class LookPanel extends JPanel implements ActionListener {
 //            }
         };
  
+       listModel = new DefaultListModel<Visit>();
+        for (Visit v : visits) {
+        	listModel.addElement(v);
+        }
+        list.setModel(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
 //        list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 //        list.setVisibleRowCount(-1);
 
-        JScrollPane listScroller = new JScrollPane(list);
+        listScroller = new JScrollPane(list);
 //        listScroller.setPreferredSize(new Dimension(300, 300));
         listScroller.setAlignmentX(LEFT_ALIGNMENT);
  
-
+        listPane.removeAll();
         listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
         listPane.setPreferredSize(new Dimension(300, 300));
         JLabel label = new JLabel("Visits:");
@@ -303,11 +367,14 @@ public class LookPanel extends JPanel implements ActionListener {
         listPane.add(listScroller);
         listPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         listPane.setVisible(true);
-
+        
+        listPane.add(cancelButton);
+        cancelButton.addActionListener(this);
+		cancelButton.setActionCommand("CANCEL");
 		
 
 		for (Visit v : visits) {
-			System.out.println(v);
+			System.out.println(v + "--------" + Integer.toString(visits.indexOf(v)));
 		}
 	}
 	
@@ -336,6 +403,11 @@ public class LookPanel extends JPanel implements ActionListener {
 		errorLabel.setForeground(new Color(230, 36, 36));
 		errorLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		northPnl.add(errorLabel);
+		
+		statusLabel.setFont(new Font("Verdana", Font.BOLD, 12));
+		statusLabel.setForeground(new Color(66, 163, 14));
+		statusLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		northPnl.add(statusLabel);
 
 	}
 	
@@ -346,6 +418,15 @@ public class LookPanel extends JPanel implements ActionListener {
 		centerPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		label.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		ButtonGroup chooseGroup = new ButtonGroup();
+		chooseGroup.add(chooseSearchRadio);
+		chooseGroup.add(chooseShowRadio);
+		
+		ButtonGroup searchGroup = new ButtonGroup();
+		searchGroup.add(searchByNameRadio);
+		searchGroup.add(searchByDateRadio);
+		
 		centerPnl.add(label);
 		centerPnl.add(textField);
 		centerPnl.add(chooseSearchRadio);
@@ -353,6 +434,8 @@ public class LookPanel extends JPanel implements ActionListener {
 		centerPnl.add(searchByNameRadio);
 		centerPnl.add(searchByDateRadio);
 		centerPnl.add(listPane);
+		
+
 	}	
 	
 	private void initNextButtonPanel()
