@@ -1,12 +1,15 @@
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Robot;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.ParseException;
@@ -431,13 +434,28 @@ public class BookPanel extends JPanel implements ActionListener {
 		centerPnl.add(label);
 		centerPnl.add(textField);
 		
+		//http://stackoverflow.com/questions/13563042/programmatically-trigger-a-key-events-in-a-jtextfield
+		textField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                System.out.println("Here..");
+            }
+        });
+//		textField.requestFocusInWindow();
+//        try {
+//            Robot robot = new Robot();
+//            robot.keyPress(KeyEvent.VK_ENTER);
+//        } catch (AWTException e) {
+//            e.printStackTrace();
+//        }
+		
 		ButtonGroup group = new ButtonGroup();
 		group.add(yesRadio);
 		group.add(noRadio);
-		
+             
 		centerPnl.add(yesRadio);
 		centerPnl.add(noRadio);
-		
+	
 		yesRadio.setVisible(false);
 		noRadio.setVisible(false);
 	}	
