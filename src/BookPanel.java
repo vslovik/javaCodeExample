@@ -10,6 +10,7 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.ParseException;
@@ -17,16 +18,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -35,7 +40,8 @@ import javax.swing.border.EtchedBorder;
 // ToDo 
 // 1. Focus to text field
 // 2. Enter button input
-public class BookPanel extends JPanel implements ActionListener {
+// http://stackoverflow.com/questions/13731710/allowing-the-enter-key-to-press-the-submit-button-as-opposed-to-only-using-mo
+public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	
 	// Field labels: five steps
 	private static final String LABEL_NAME = "Enter Name"; // 1.
@@ -105,7 +111,19 @@ public class BookPanel extends JPanel implements ActionListener {
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-		switch(e.getActionCommand()) {
+		execute(nextButton.getActionCommand());
+	}	
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode()==KeyEvent.VK_ENTER){
+            execute(nextButton.getActionCommand());
+        }
+    }
+    public void keyReleased(KeyEvent arg0) {}
+    public void keyTyped(KeyEvent arg0) {}
+    
+    private void execute(String action)
+    {
+		switch(action) {
 		case "NEW":
 			renewStatusPanel();
 			step = 0;
@@ -134,15 +152,8 @@ public class BookPanel extends JPanel implements ActionListener {
 			doSave();				
 			break;
 		}
-	}
+    }
 
-	/**
-	 * Validate user input
-	 * 
-	 * @param step
-	 * 
-	 * @return
-	 */
 	private void acceptName() {
 		if (textField.getText().length() == 0) {
 			showError("Name can not be empty!");			
@@ -272,14 +283,17 @@ public class BookPanel extends JPanel implements ActionListener {
 		case "NAME":			
 			label.setText(LABEL_NAME);
 			textField.setVisible(true);
+			textField.requestFocusInWindow();
 			nextButton.setActionCommand(stepName);
 			break;
 		case "DATE":
 			label.setText(LABEL_DATE);
+			textField.requestFocusInWindow();
 			nextButton.setActionCommand(stepName);
 			break;
 		case "NUMBER":
 			label.setText(LABEL_NUMBER);
+			textField.requestFocusInWindow();
 			nextButton.setActionCommand(stepName);
 			break;
 		case "GUIDE":
@@ -306,6 +320,7 @@ public class BookPanel extends JPanel implements ActionListener {
 		case "VISITOR":
 			label.setText(LABEL_VISITOR + " " + Integer.toString(visitors.size() + 1) + ": ");
 			textField.setVisible(true);
+			textField.requestFocusInWindow();
 			yesRadio.setVisible(false);
 			noRadio.setVisible(false);
 			nextButton.setActionCommand(stepName);
@@ -433,14 +448,17 @@ public class BookPanel extends JPanel implements ActionListener {
 		label.setBorder(new EmptyBorder(10, 10, 10, 10));
 		centerPnl.add(label);
 		centerPnl.add(textField);
+		textField.addActionListener(this);
+		textField.addKeyListener(this);
+		
 		
 		//http://stackoverflow.com/questions/13563042/programmatically-trigger-a-key-events-in-a-jtextfield
-		textField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                System.out.println("Here..");
-            }
-        });
+//		textField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent ae) {
+//                System.out.println("Here..");
+//            }
+//        });
 //		textField.requestFocusInWindow();
 //        try {
 //            Robot robot = new Robot();
@@ -469,6 +487,9 @@ public class BookPanel extends JPanel implements ActionListener {
 		
 		// NextButton
 		southPnl.add(nextButton);		
+		nextButton.addKeyListener(this);
 		nextButton.addActionListener(this);
+		nextButton.setMnemonic(KeyEvent.VK_ENTER);
+		
 	}
 }
