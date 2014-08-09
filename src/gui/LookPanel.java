@@ -1,3 +1,4 @@
+package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,6 +34,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+
+import storage.Storage;
+import storage.StorageException;
+import storage.Visit;
 
 // ToDo 
 // 1. Focus to text field
@@ -212,7 +217,11 @@ public class LookPanel extends JPanel implements ActionListener {
 		Visit v = listModel.getElementAt(index);
 		System.out.println(v + "--------" + Integer.toString(visits.indexOf(v)));
 		
-		storage.delete(listModel.getElementAt(index));
+		try {
+			storage.delete(listModel.getElementAt(index));
+		} catch (StorageException e) {
+			showError("System error!");
+		}
 		listModel.removeElementAt(index);
 
 	    nextButton.setText("Save");

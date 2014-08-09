@@ -1,3 +1,4 @@
+package generator;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -7,15 +8,9 @@ public class RandomDate {
 
 	public RandomDate (String start, String end) {
 	    beginTime = Timestamp.valueOf(start).getTime();
-	    endTime = Timestamp.valueOf(end).getTime();
+	    endTime   = Timestamp.valueOf(end).getTime();
 	}
 
-	/**
-	 * Method should generate random number that represents 
-	 * a time between two dates.
-	 * 
-	 * @return
-	 */
 	private long getRandomTimeBetweenTwoDates () {
 	    long diff = endTime - beginTime + 1;
 	    return beginTime + (long) (Math.random() * diff);

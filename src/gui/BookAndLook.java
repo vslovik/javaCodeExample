@@ -1,3 +1,4 @@
+package gui;
 
 /*
  * TabDemo.java
@@ -6,6 +7,8 @@
 import java.awt.*;
 
 import javax.swing.*;
+
+import storage.Storage;
  
 public class BookAndLook {
     final static String BOOK_PANEL = "BOOK";
@@ -66,7 +69,7 @@ public class BookAndLook {
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(new Storage("visitors"));
+                createAndShowGUI(new Storage());
             }
         });
     }

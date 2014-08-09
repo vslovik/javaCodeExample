@@ -1,6 +1,8 @@
+package storage;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,58 +11,36 @@ import java.util.InputMismatchException;
 import java.util.Vector;
 import java.util.Scanner;
 
-public class Visit implements Serializable {
-	
-	private String name;
-	private Date date;
-	private Integer visitorNumber;
-	
-	private Boolean guide = false;
-	private Boolean reduction = false;
-	private Vector<String> visitorNames = new Vector<String>();
-	
-	static final long serialVersionUID = 1;
+import console.ClientException;
 
+public class Visit implements Serializable {
+
+	private static final long serialVersionUID = 8356740381864305284L;
 	public static final int visitPrice = 5;
 	public static final int guidePrice = 50;
 	public static final int visitPriceReduced = 3;
 	public static final int guidePriceReduced = 40;
 	public static final int applyReductionTreshold = 10;
+	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 	
-	Visit(){}
+	public long createdAt = 5;
+	private String name;
+	private Date date;
+	private Integer visitorNumber;
+	private Boolean guide = false;
+	private Boolean reduction = false;
+	private Vector<String> visitorNames = new Vector<String>();
 	
-	Visit(String name, Date date, int visitorNumber)
+	public Visit(){
+		this.createdAt =  new Date().getTime();
+	}
+	
+	public Visit(String name, Date date, int visitorNumber)
 	{
+		this.createdAt =  new Date().getTime();
 		this.name = name;
 		this.date = date;
 		this.visitorNumber = visitorNumber;
-	}
-	
-	Visit(String[] data) throws ParseException {
-		SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");				  
-		this.name = data[0];
-		this.date = df.parse(data[1]);
-		//visit.setVisitorNumber(visitData[2]);	// ToDo
-		this.visitorNumber = 3;
-		String visitorsString = data[5];
-		String[] visitors = visitorsString.split(",");
-		Vector<String> visitorNames = new Vector<String>();
-		for(int i = 0; i < visitors.length; i++) {
-			System.out.println(visitors[i]);
-			visitorNames.add(visitors[i]);
-		}
-		System.out.println(data.toString());
-		//System.out.println(visitorNames.toString());
-		if (visitorNames.size() > 0) {
-			setVisitorNumber(visitorNames.size());
-			setVisitorNames(visitorNames);
-			if (data[3] == "YES") {
-				setGuide();
-			}
-			if (data[4] == "YES") {
-				setReduction();
-			}
-		}		
 	}
 	
 	public String getName() 
@@ -96,7 +76,6 @@ public class Visit implements Serializable {
 	throws ClientException
 	{
 		System.out.println("Date dd/mm/yy:");
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 		try {
 			Date date = dateFormat.parse(input.nextLine());
 			if (date.compareTo(new Date()) < 0)
@@ -199,11 +178,28 @@ public class Visit implements Serializable {
 		}
 	}
 	
+	public String getDateKey(){
+		return dateFormat.format(date) + "-" + name + " " + Long.toString(createdAt);
+	}
+	
+	public String getNameKey(){
+		return name + "-" + dateFormat.format(date) + " " + Long.toString(createdAt);
+	}
+	
+	public boolean validate(){
+		if(name.length() == 0)
+			return false;
+		if(visitorNumber == 0)
+			return false;
+		if (date == null)
+			return false;
+		return true;
+	}
+	
 	public String toString()
 	{
-		DateFormat df = new SimpleDateFormat("dd/mm/yy");
 		String description = "Name: " + name 
-				+ " Date: " + df.format(date) 
+				+ " Date: " + dateFormat.format(date) 
 				+ " Number of visitors: " + visitorNumber
 				+ " Guide: " + (hasGuide() ? " yes" : " no");
 		description += " Price ";

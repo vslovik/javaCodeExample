@@ -1,14 +1,19 @@
+package console;
 
 import java.util.Scanner;
 import java.util.Date;
 import java.text.*;
 import java.util.Vector;
 
+import storage.Storage;
+import storage.StorageException;
+import storage.Visit;
+
 public class Client {
 
 	public static void main(String[] args) {
 		Scanner input = new Scanner(System.in);
-		Storage storage = new Storage("visitors");
+		Storage storage = new Storage();
 		char choice;
 		do {
 			System.out.println();
@@ -69,9 +74,11 @@ public class Client {
 				show(visit);
 			} catch (ClientException e) {
 				input.nextLine();
-				System.out.println(e.getMessage());
+				System.out.println(e);
 				System.out.println("Retry.");
 				ok = false;
+			} catch (StorageException e) {
+				System.out.println(e);
 			}
 		} while (!ok);
 	}
@@ -152,7 +159,11 @@ public class Client {
 		Vector<Visit> visits = (storage.get().size() <= 10) ? storage.get()
 				: search(input, storage);
 		if (visits.size() == 1) {
-			storage.delete(visits.get(0));
+			try {
+				storage.delete(visits.get(0));
+			} catch (StorageException e) {
+				System.out.println(e);
+			}
 			System.out.println("You've just canceled the visit "
 					+ visits.get(0) + " (Not saved yet.)");
 			return;
@@ -165,7 +176,11 @@ public class Client {
 			int index = input.nextInt() - 1;
 			if (index < visits.size()) {
 				ok = true;
-				storage.delete(visits.get(index));
+				try {
+					storage.delete(visits.get(index));
+				} catch (StorageException e) {
+					System.out.println(e);
+				}
 				System.out.println("You've just canceled the visit "
 						+ visits.get(index) + " (Not saved yet.)");
 			} else {
@@ -229,17 +244,15 @@ public class Client {
 	}
 
 	private static void exit(Scanner input, Storage storage) {
-		if (storage.isChanged()) {
-			char answer;
-			do {
-				System.out.println("Do you want to save changes? Y/N:");
-				answer = input.next().charAt(0);
-				input.nextLine();
-				if (answer == 'Y') {
-					storage.save();
-				}
-			} while (answer != 'Y' && answer != 'N');
-		}
+		char answer;
+		do {
+			System.out.println("Do you want to save changes? Y/N:");
+			answer = input.next().charAt(0);
+			input.nextLine();
+			if (answer == 'Y') {
+				storage.save();
+			}
+		} while (answer != 'Y' && answer != 'N');
 		input.close();
 	}
 }

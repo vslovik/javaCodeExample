@@ -1,3 +1,4 @@
+package console;
 /**
  * Signals that an Client exception of some sort has occurred. 
  */

@@ -1,3 +1,4 @@
+package gui;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -36,6 +37,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+
+import storage.Storage;
+import storage.StorageException;
+import storage.Visit;
 
 // ToDo 
 // 1. Focus to text field
@@ -266,7 +271,11 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	
 	private void doSave()
 	{
-		storage.put(visit);
+		try {
+			storage.put(visit);
+		} catch (StorageException e) {
+			showError("System error!");
+		}
 		if(!storage.save()) {
 			showError("System error!");
 		} else {
