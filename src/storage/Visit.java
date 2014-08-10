@@ -2,8 +2,6 @@ package storage;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +19,7 @@ public class Visit implements Serializable {
 	public static final int visitPriceReduced = 3;
 	public static final int guidePriceReduced = 40;
 	public static final int applyReductionTreshold = 10;
-	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	
 	public long createdAt = 5;
 	private String name;

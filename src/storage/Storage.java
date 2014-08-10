@@ -14,43 +14,67 @@ import java.util.Vector;
 
 public class Storage {
 	
-	public final static String FILE_VISITS = "visits";
-	public final static String FILE_INDEX  = "index";
+	public final static String RESOURCE_VISITS = "visits";
+	public final static String RESOURCE_INDEX  = "index";
 	
-	private Vector<Visit> visits = new Vector<Visit>();
 	private TreeMap<String, Visit> map;
 	private TreeMap<String, String> index;
 	
+	public Storage() {	
+		read(RESOURCE_VISITS);
+		read(RESOURCE_INDEX);
+	}
+	
 	@SuppressWarnings("unchecked")
-	public Storage() {
+	private void read(String resourceName)
+	{
+		ObjectInputStream stream = null;
 		try {
-			ObjectInputStream input = new ObjectInputStream(
-					new BufferedInputStream(new FileInputStream(FILE_VISITS))
-					);
-			map = (TreeMap<String, Visit>) input.readObject();
-			
-			input.close();		
-			
-			input = new ObjectInputStream(
-					new BufferedInputStream(new FileInputStream(FILE_INDEX))
-					);
-			index = (TreeMap<String, String>) input.readObject();
-			
-			input.close();	
-		
+			stream = new ObjectInputStream(	new BufferedInputStream(new FileInputStream(resourceName)));
+			if(stream != null) {
+				map = (TreeMap<String, Visit>) stream.readObject();
+			}		
 		} catch (FileNotFoundException e) {
-			System.out.println("ATTENSION: file " + FILE_VISITS + " does not exsists.");
+			System.out.println("ATTENSION: file " + resourceName + " does not exsists.");
 			System.out.println("It will be created.");
-			map = new TreeMap<String, Visit>();
-			index = new TreeMap<String, String>();
 		} catch (ClassNotFoundException e) {
-			map = new TreeMap<String, Visit>();
-			index = new TreeMap<String, String>();
-		} catch (IOException e) {
-			System.out.println("I/O ERROR");
 			System.out.println(e);
-			map = new TreeMap<String, Visit>();
-			index = new TreeMap<String, String>();
+		} catch (IOException e) {
+			System.out.println(e);
+		} finally {
+			init(resourceName);
+			try {
+				if (stream != null)
+					stream.close();
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+		}
+	}
+	
+	private void init(String resourceName) {
+		switch(resourceName){
+		case RESOURCE_VISITS:
+			if (map == null) {
+				map = new TreeMap<String, Visit>();
+			} 
+			break;
+		case RESOURCE_INDEX:
+			if(index == null) {
+				index = new TreeMap<String, String>();
+				if(map.size() != 0){
+					System.out.println("Reindexing...");
+					reindex();
+					System.out.println("Done");
+				} 			
+			}
+			break;
+		}
+	}
+	
+	public void reindex(){
+		for(Visit visit : map.values()) {
+			index.put(visit.getNameKey(), visit.getDateKey());
 		}
 	}
 	
@@ -86,7 +110,6 @@ public class Storage {
 		if(index.size() == 0)
 			return result;
 		String key = index.ceilingKey(name);
-		System.out.println(key);
 		if(key == null)
 			return result;
 		for(String k : index.tailMap(key, true).values()){
@@ -116,22 +139,27 @@ public class Storage {
 	}
 	
 	public boolean save() {
+		return save(RESOURCE_VISITS) && save(RESOURCE_INDEX);
+	}
+	
+	public boolean save(String resourceName) {
+		ObjectOutputStream stream = null;
 		try {
-			ObjectOutputStream output = new ObjectOutputStream(
-					new BufferedOutputStream(new FileOutputStream(FILE_VISITS))
-					);
-			output.writeObject(map);
-			output.close();
-			output = new ObjectOutputStream(
-					new BufferedOutputStream(new FileOutputStream(FILE_INDEX))
-					);
-			output.writeObject(index);
-			output.close();
-			return true;
+			stream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(resourceName)));		
+			if(stream != null) 
+				stream.writeObject(map);
+			return true;		
 		} catch (IOException e) {
 			System.out.println("I/O ERROR");
-			System.out.println(e);
-			return false;
+			System.out.println(e);			
+			return false;		
+		} finally {
+			try {
+				if (stream != null)
+					stream.close();
+			} catch (IOException e) {
+				System.out.println(e);
+			}
 		}
 	}
 }
