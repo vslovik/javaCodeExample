@@ -1,18 +1,14 @@
 package gui;
 
-/*
- * TabDemo.java
- */
- 
 import java.awt.*;
-
 import javax.swing.*;
-
 import storage.Storage;
  
 public class BookAndLook {
-    final static String BOOK_PANEL = "BOOK";
-    final static String LOOK_PANEL = "LOOK";
+	
+	final static String FRAME_TITLE = "Book and look";
+    final static String BOOK_PANEL  = "BOOK";
+    final static String LOOK_PANEL  = "LOOK";
     
     private JPanel card1;
     private JPanel card2;
@@ -30,13 +26,13 @@ public class BookAndLook {
     }
  
     /**
-     * Create the GUI and show it.  For thread safety,
+     * Create the GUI and show it. For thread safety,
      * this method should be invoked from the
      * event dispatch thread.
      */
     private static void createAndShowGUI(Storage storage) {
         //Create and set up the window.
-        JFrame frame = new JFrame("Book and look");
+        JFrame frame = new JFrame(FRAME_TITLE);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
  
         //Create and set up the content pane.
@@ -49,20 +45,18 @@ public class BookAndLook {
     }
  
     public static void main(String[] args) {
-      /* Use an appropriate Look and Feel */
         try {
-            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
             UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-        } catch (UnsupportedLookAndFeelException ex) {
-            ex.printStackTrace();
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace();
-        } catch (InstantiationException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+        	System.out.println(e);
+        } catch (IllegalAccessException e) {
+        	System.out.println(e);
+        } catch (InstantiationException e) {
+        	System.out.println(e);
+        } catch (ClassNotFoundException e) {
+        	System.out.println(e);
         }
-        /* Turn off metal's use of bold fonts */
+
         UIManager.put("swing.boldMetal", Boolean.FALSE);
          
         //Schedule a job for the event dispatch thread:

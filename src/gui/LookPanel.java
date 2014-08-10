@@ -1,4 +1,5 @@
 package gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,6 +11,8 @@ import java.awt.Rectangle;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.ParseException;
@@ -39,95 +42,115 @@ import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
 
-// ToDo 
-// 1. Focus to text field
-// 2. Enter button input
-public class LookPanel extends JPanel implements ActionListener {
+public class LookPanel extends JPanel implements ActionListener, KeyListener {
+	
+	private static final long serialVersionUID = -7521824039604344258L;
 	
 	// Field labels: five steps
-	private static final String LABEL_CHOOSE = "Choose"; 
-	private static final String LABEL_SEARCH = "Search by"; 	
-	private static final String LABEL_NAME = "Enter Name"; 
-	private static final String LABEL_DATE = "Enter Date (dd/mm/YYYY)"; 
+	private static final String LABEL_CHOOSE   = "Choose"; 
+	private static final String LABEL_NAME     = "Name"; 
+	private static final String LABEL_DATE     = "Date (dd/mm/YYYY)"; 
+	private static final String LABEL_SEARCH   = "Search";
+	private static final String LABEL_SHOW_ALL = "Show all";
+	private static final String LABEL_BY_NAME  = "by Name";
+	private static final String LABEL_BY_DATE  = "by Date";
+	private static final String LABEL_NEXT     = "Next";
+	private static final String LABEL_SAVE     = "Save";
+	private static final String LABEL_LOOK_UP  = "New Look Up";
+	private static final String LABEL_VISITS   = "Visits: ";
 	
+	private static final String STATUS_SUCCESS   = "Success!";
+	private static final String STATUS_NO_VISITS = "No visits found";
+	
+	private static final String ERROR_CHOOSE     = "Choose one option";
+	private static final String ERROR_NAME       = "Name can not be empty";
+	private static final String ERROR_EMPTY_DATE = "Date can not be empty";
+	private static final String ERROR_DATE       = "Invalid date";
+	private static final String ERROR_SYSTEM     = "System error";
+	
+    final static int extraWindowWidth = 100;
+	
+    // Reusable GUI elements:
+    
 	// Error label
-	private JLabel errorLabel = new JLabel();
+	private JLabel errorLabel;
 	
 	// Status label
-	private JLabel statusLabel = new JLabel();
+	private JLabel statusLabel;
 	
 	// Label
-	private JLabel label = new JLabel();
+	private JLabel label;
 	
 	// Search/Show all radio buttons
-    private JRadioButton chooseSearchRadio = new JRadioButton("Search");
-    private JRadioButton chooseShowRadio   = new JRadioButton("Show all");
+    private JRadioButton chooseSearchRadio;
+    private JRadioButton chooseShowRadio;
     
 	// Search by Name/Date radio buttons
-    private JRadioButton searchByNameRadio  = new JRadioButton("by Name");
-    private JRadioButton searchByDateRadio  = new JRadioButton("by Date");
+    private JRadioButton searchByNameRadio;
+    private JRadioButton searchByDateRadio;
 	  
 	// Text field
-	private TextField textField = new TextField("", 20);
+	private TextField textField;
     
     // Next button
-	private JButton nextButton = new JButton("Next");
+	private JButton nextButton;
 	
-    // Cancel button
-	private JButton cancelButton = new JButton("-");
-	
-	// Three panels to place elements
-    private JPanel northPnl  = new JPanel();
-    private JPanel centerPnl = new JPanel();
-    private JPanel southPnl  = new JPanel();
+	// Cancel button
+	private JButton cancelButton;
 	
     // Storage
     private Storage storage;
     
     // Visits
-    private Vector<Visit> visits = new Vector<Visit>();
+    private Vector<Visit> visits;
     
     // Visitor list pane
     private JPanel listPane = new JPanel();
-    
-    // Current Page
-    private int currentPage = 1;
-    
     // List of visits to show
     private JList<Visit> list;
-    
-    private JScrollPane listScroller;
-
-    final static int extraWindowWidth = 100;
-    
-	private static final long serialVersionUID = 1L;
-	
 	private DefaultListModel<Visit> listModel;
+	
 
 	//Make the panel wider than it really needs, so
     //the window's wide enough for the tabs to stay
     //in one row.
     public Dimension getPreferredSize() {
-        Dimension size = super.getPreferredSize();
-        size.width += extraWindowWidth;
+        Dimension size = super.getPreferredSize();     
+        size.width  += extraWindowWidth;
         size.height += 300;
         return size;
     }
+    
 	public LookPanel(Storage storage) {
+		visits = new Vector<Visit>();
 		this.storage = storage;
 		makeLayout();
 		showStep("CHOICE");
 	}
 	
+    // Listeners interface methods
 	public void actionPerformed(ActionEvent e) {
-		switch(e.getActionCommand()) {
+		execute(nextButton.getActionCommand());
+	}	
+	
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode()==KeyEvent.VK_ENTER){
+            execute(nextButton.getActionCommand());
+        }
+    }
+    
+    public void keyReleased(KeyEvent arg0) {}
+    public void keyTyped(KeyEvent arg0) {}
+	
+	public void execute(String command) {
+		switch(command) {
 		case "NEW":
 			listPane.removeAll();
 			listPane.setVisible(false);
 			label.setVisible(true);
 			chooseSearchRadio.setVisible(true);
 			chooseShowRadio.setVisible(true);
-			nextButton.setText("Next");
+			nextButton.setText(LABEL_NEXT);
 			showStep("CHOICE");
 			break;
 		case "CHOICE": 
@@ -161,7 +184,7 @@ public class LookPanel extends JPanel implements ActionListener {
 			visits = storage.get();
 			showStep("SHOW");
 		} else {
-			errorLabel.setText("Choose one option!");
+			errorLabel.setText(ERROR_CHOOSE);
 		}
 	}
 	
@@ -174,13 +197,13 @@ public class LookPanel extends JPanel implements ActionListener {
 			searchByDateRadio.setSelected(false);
 			showStep("DATE");
 		} else {
-			errorLabel.setText("Tell if reduction is requested");
+			errorLabel.setText(ERROR_CHOOSE);
 		}
 	}
 	
 	private void acceptName() {
 		if (textField.getText().length() == 0) {
-			errorLabel.setText("Name can not be empty!");
+			errorLabel.setText(ERROR_NAME);
 		} else {
 			visits = storage.get(textField.getText());
 			showStep("SHOW");
@@ -189,20 +212,15 @@ public class LookPanel extends JPanel implements ActionListener {
 	
 	private void acceptDate() {
 		if (textField.getText().length() == 0) {
-			errorLabel.setText("Date can not be empty!");
+			errorLabel.setText(ERROR_EMPTY_DATE);
 		} else {
 			String text = textField.getText();
 			try {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
-				Date date = dateFormat.parse(text);
-				if (date.compareTo(new Date()) > 0) {
-					visits = storage.get(date);
-					showStep("SHOW");
-				} else {
-					errorLabel.setText("You should choose the date in the future");
-				}
+				Date date = Visit.dateFormat.parse(text);
+				visits = storage.get(date);
+				showStep("SHOW");
 			} catch (ParseException e) {
-				errorLabel.setText("Wrong data format! Should be dd/mm/yy");
+				errorLabel.setText(ERROR_DATE);
 			}
 		}
 	}
@@ -214,28 +232,25 @@ public class LookPanel extends JPanel implements ActionListener {
 			return;
 		System.out.println(index);
 		
-		Visit v = listModel.getElementAt(index);
-		System.out.println(v + "--------" + Integer.toString(visits.indexOf(v)));
-		
 		try {
 			storage.delete(listModel.getElementAt(index));
 		} catch (StorageException e) {
-			showError("System error!");
+			showError(ERROR_SYSTEM);
 		}
 		listModel.removeElementAt(index);
 
-	    nextButton.setText("Save");
+	    nextButton.setText(LABEL_SAVE);
 	    nextButton.setActionCommand("SAVE");
 	}
 	
 	private void saveVisits()
 	{
 		if(!storage.save()) {
-			showError("System error!");
+			showError(ERROR_SYSTEM);
 		} else {
-			showSuccess("Success!");
+			showSuccess(STATUS_SUCCESS);
 		}
-	    nextButton.setText("New Look Up");
+	    nextButton.setText(LABEL_LOOK_UP);
 	    nextButton.setActionCommand("NEW");
 	}
 
@@ -308,83 +323,47 @@ public class LookPanel extends JPanel implements ActionListener {
 			
 			showVisits();
 			
-			nextButton.setText("New Look Up");
+			nextButton.setText(LABEL_LOOK_UP);
 			nextButton.setActionCommand("NEW");
 			break;	
 		}
 	}
-	
 
-	
-	@SuppressWarnings("serial")
 	private void showVisits() {
 		if (visits.size() == 0) {
-			showSuccess("No visits found");
+			showSuccess(STATUS_NO_VISITS);
 			return;
 		}
-		list = new JList<Visit>() {
-            //Subclass JList to workaround bug 4832765, which can cause the
-            //scroll pane to not let the user easily scroll up to the beginning
-            //of the list.  An alternative would be to set the unitIncrement
-            //of the JScrollBar to a fixed value. You wouldn't get the nice
-            //aligned scrolling, but it should work.
-//            public int getScrollableUnitIncrement(Rectangle visibleRect,
-//                                                  int orientation,
-//                                                  int direction) {
-//                int row;
-//                if (orientation == SwingConstants.VERTICAL &&
-//                      direction < 0 && (row = getFirstVisibleIndex()) != -1) {
-//                    Rectangle r = getCellBounds(row, row);
-//                    if ((r.y == visibleRect.y) && (row != 0))  {
-//                        Point loc = r.getLocation();
-//                        loc.y--;
-//                        int prevIndex = locationToIndex(loc);
-//                        Rectangle prevR = getCellBounds(prevIndex, prevIndex);
-// 
-//                        if (prevR == null || prevR.y >= r.y) {
-//                            return 0;
-//                        }
-//                        return prevR.height;
-//                    }
-//                }
-//                return super.getScrollableUnitIncrement(
-//                                visibleRect, orientation, direction);
-//            }
-        };
- 
-       listModel = new DefaultListModel<Visit>();
+
         for (Visit v : visits) {
         	listModel.addElement(v);
         }
-        list.setModel(listModel);
-        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-
-//        list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        list.setVisibleRowCount(-1);
-
-        listScroller = new JScrollPane(list);
-//        listScroller.setPreferredSize(new Dimension(300, 300));
-        listScroller.setAlignmentX(LEFT_ALIGNMENT);
  
+        
         listPane.removeAll();
         listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
         listPane.setPreferredSize(new Dimension(300, 300));
-        JLabel label = new JLabel("Visits:");
-        label.setLabelFor(list);
-        listPane.add(label);
-        listPane.add(Box.createRigidArea(new Dimension(0,5)));
-        listPane.add(listScroller);
+        listPane.add(Box.createRigidArea(new Dimension(0,5)));      
         listPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         listPane.setVisible(true);
         
-        listPane.add(cancelButton);
-        cancelButton.addActionListener(this);
+		list = new JList<Visit>();
+        listModel = new DefaultListModel<Visit>();
+        list.setModel(listModel);
+        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);    
+        JScrollPane listScroller = new JScrollPane(list);
+        listScroller.setAlignmentX(LEFT_ALIGNMENT);
+        listPane.add(listScroller);
+        
+        JLabel label = new JLabel(LABEL_VISITS);
+        label.setLabelFor(list);
+        listPane.add(label);
+        
+        cancelButton = new JButton("-");
+		cancelButton.addActionListener(this);
+		cancelButton.addKeyListener(this);	
 		cancelButton.setActionCommand("CANCEL");
-		
-
-		for (Visit v : visits) {
-			System.out.println(v + "--------" + Integer.toString(visits.indexOf(v)));
-		}
+        listPane.add(cancelButton);
 	}
 	
 	/**
@@ -406,27 +385,39 @@ public class LookPanel extends JPanel implements ActionListener {
 	
 	private void initErrorPanel()
 	{
-		add(northPnl, BorderLayout.NORTH);
-		
+	    JPanel northPnl  = new JPanel();
+	    
+		errorLabel = new JLabel();
 		errorLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 		errorLabel.setForeground(new Color(230, 36, 36));
 		errorLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		northPnl.add(errorLabel);
 		
+		statusLabel = new JLabel();
 		statusLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 		statusLabel.setForeground(new Color(66, 163, 14));
 		statusLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		northPnl.add(statusLabel);
-
+		
+		add(northPnl, BorderLayout.NORTH);
 	}
 	
+
 	private void initInputPanel()
 	{
-		add(centerPnl, BorderLayout.CENTER);
-		centerPnl.setLayout(new GridBagLayout());
-		centerPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
-
+		label = new JLabel();
 		label.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		textField = new TextField("", 20);
+		textField.addActionListener(this);
+		textField.addKeyListener(this);	
+		textField.requestFocusInWindow();
+		
+	    chooseSearchRadio = new JRadioButton(LABEL_SEARCH);
+	    chooseShowRadio   = new JRadioButton(LABEL_SHOW_ALL);
+	    
+	    searchByNameRadio  = new JRadioButton(LABEL_BY_NAME);
+	    searchByDateRadio  = new JRadioButton(LABEL_BY_DATE);
 		
 		ButtonGroup chooseGroup = new ButtonGroup();
 		chooseGroup.add(chooseSearchRadio);
@@ -435,27 +426,32 @@ public class LookPanel extends JPanel implements ActionListener {
 		ButtonGroup searchGroup = new ButtonGroup();
 		searchGroup.add(searchByNameRadio);
 		searchGroup.add(searchByDateRadio);
-		
+
+	    JPanel centerPnl = new JPanel();
 		centerPnl.add(label);
 		centerPnl.add(textField);
 		centerPnl.add(chooseSearchRadio);
 		centerPnl.add(chooseShowRadio);
 		centerPnl.add(searchByNameRadio);
 		centerPnl.add(searchByDateRadio);
+		
 		centerPnl.add(listPane);
 		
-
+		add(centerPnl, BorderLayout.CENTER);
+		centerPnl.setLayout(new GridBagLayout());
+		centerPnl.setBorder(new EmptyBorder(10, 10, 10, 10));	
 	}	
 	
 	private void initNextButtonPanel()
 	{
-		add(southPnl, BorderLayout.SOUTH);
-		southPnl.setLayout(new GridBagLayout());
-		southPnl.setBorder(new EmptyBorder(10, 10, 10, 10) );
-		//southPnl.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(10, 10, 10, 10),  new EtchedBorder()));
-		
-		// NextButton
-		southPnl.add(nextButton);		
+		nextButton = new JButton(LABEL_NEXT);
+		nextButton.addKeyListener(this);
 		nextButton.addActionListener(this);
+		nextButton.setMnemonic(KeyEvent.VK_ENTER);
+	    JPanel southPnl  = new JPanel();
+		southPnl.setLayout(new GridBagLayout());
+		southPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
+		southPnl.add(nextButton);	
+		add(southPnl, BorderLayout.SOUTH);	
 	}
 }
