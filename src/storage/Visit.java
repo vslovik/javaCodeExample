@@ -128,7 +128,7 @@ public class Visit implements Serializable {
 	
 	public void setReduction()
 	{
-		if (visitorNames.size() > applyReductionTreshold) {
+		if (visitorNames.size() >= applyReductionTreshold) {
 			this.reduction = true;
 		}
 	}
@@ -220,10 +220,10 @@ public class Visit implements Serializable {
 				method.invoke(this, input);
 				ok = true;
 			} catch (NoSuchMethodException e) {
-				System.out.println(e.getMessage());
+				System.out.println(e);
 			} catch (IllegalAccessException e) {
 			} catch(InvocationTargetException e) {
-				System.out.println(e.getMessage());
+				System.out.println(e);
 				System.out.println("Retry.");
 				ok = false;
 			}

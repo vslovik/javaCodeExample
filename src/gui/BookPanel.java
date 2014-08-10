@@ -12,6 +12,7 @@ import java.awt.event.KeyListener;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Vector;
+
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
@@ -20,7 +21,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+
 import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
@@ -79,7 +82,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	
     // Status 
     private DefaultListModel<String> statusList;
-	
+    private JPanel listPane;
+    
 	// Current field label
 	private JLabel label;
 	
@@ -197,6 +201,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 			int number = Integer.parseInt(textField.getText());
 			if (number == 0) {
 				showError(ERROR_INVALID_NUMBER);
+				return;
 			}
 			visit.setVisitorNumber(number);
 			showStatus(STATUS_NUMBER + " " + textField.getText());
@@ -305,8 +310,6 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 			break;
 		case "REDUCTION":
 			if(visit.getVisitorNumber() < Visit.applyReductionTreshold) {
-				System.out.println(visit.getVisitorNumber());
-				System.out.println(Visit.applyReductionTreshold);
 				showStep(steps[++step]);
 			} else {
 				label.setText(LABEL_REDUCTION);
@@ -343,13 +346,16 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	private void renewStatusPanel()
 	{
 		statusList.removeAllElements();
+		statusList.addElement(STATUS_TITLE);
 		errorLabel.setVisible(false);
+		listPane.setVisible(false);
 	}
 	
 	private void showStatus(String line)
 	{
 		errorLabel.setVisible(false);
 		statusList.addElement(line);
+		listPane.setVisible(true);
 	}
 	
 	private void showError(String message) {
@@ -381,26 +387,32 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		errorLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 		errorLabel.setForeground(new Color(230, 36, 36));
 		errorLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		errorLabel.setAlignmentX(CENTER_ALIGNMENT);
 		
 		// Status
 		statusList = new DefaultListModel<String>();
 		statusList.addElement(STATUS_TITLE);
 		
+		// ToDo Try this: http://binfalse.de/2012/04/conditionally-autoscroll-a-jscrollpane/
 		JList<String> list = new JList<String>();
 		list.setModel(statusList);
 		list.setFont(new Font("Verdana", Font.BOLD, 12));
 		list.setForeground(new Color(66, 163, 14));
 		list.setBorder(new EmptyBorder(10, 10, 10, 10));
-		
-	    JPanel listPane = new JPanel();
-		listPane.add(list);
+		JScrollPane listScroller = new JScrollPane(list);
+		listScroller.setAlignmentX(CENTER_ALIGNMENT);
+	    listPane = new JPanel();
+		listPane.add(listScroller);
+		listPane.setVisible(false);
 		
 		JPanel northPnl  = new JPanel();
+		northPnl.setLayout(new BoxLayout(northPnl, BoxLayout.Y_AXIS));
+		northPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
 		northPnl.add(errorLabel);
 		northPnl.add(listPane);
 			
-		northPnl.setLayout(new BoxLayout(northPnl, BoxLayout.Y_AXIS));
-		northPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
 		add(northPnl, BorderLayout.NORTH);
 	}
 	
