@@ -12,7 +12,8 @@ import java.util.Vector;
 public class ImportFromCsv {
 
 	final static String FILE_INPUT = "data.csv";	
-	final static String DELIMITER   = ";";		
+	final static String FIELDS_DELIMITER   = ";";
+	final static String VISITORS_DELIMITER = ",";	
 	final static Charset ENC = StandardCharsets.UTF_8;
 	
 	private List<String> lines;
@@ -46,7 +47,7 @@ public class ImportFromCsv {
 	private Visit createVisit(String line)
 	{
 		Visit visit = new Visit();
-		String[] data = line.split(DELIMITER);
+		String[] data = line.split(FIELDS_DELIMITER);
 		visit.setName(data[0]);
 		try {
 			visit.setDate(Visit.dateFormat.parse(data[1]));
@@ -56,18 +57,21 @@ public class ImportFromCsv {
 		visit.setVisitorNumber(Integer.parseInt(data[2]));
 		
 		Vector<String> visitors = new Vector<String>();
-		String[] arr = data[3].substring(1, data[3].length()).split(DELIMITER);
-		if(arr.length > 0){
-			for(String name : arr){
-				visitors.add(name);
+		if (data[5].length() != 0) {
+			String[] arr = data[5].substring(1, data[5].length() - 1).split(
+					VISITORS_DELIMITER);
+			if (arr.length > 0) {
+				for (String name : arr) {
+					visitors.add(name);
+				}
 			}
 		}
 		visit.setVisitorNames(visitors);
 		
-		if(data[4] == "yes"){
+		if(data[3].equals("yes")){
 			visit.setGuide();
 		}
-		if(data[4] == "yes"){
+		if(data[4].equals("yes")){
 			visit.setReduction();
 		}
 		return visit;
