@@ -180,6 +180,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		} else {
 			String text = textField.getText();
 			try {
+				Visit.dateFormat.setLenient(false);
 				Date date = Visit.dateFormat.parse(text);
 				if (date.compareTo(new Date()) > 0) {
 					visit.setDate(date);
