@@ -165,6 +165,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 			visit.setName(textField.getText());
 			showStatus(STATUS_NAME + " " + textField.getText());
 			textField.setText("");
+			textField.repaint();
 			showStep(steps[++step]);
 		}
 	}
@@ -180,6 +181,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 					visit.setDate(date);
 					showStatus(STATUS_DATE + " " + text);
 					textField.setText("");
+					textField.repaint();
 					showStep(steps[++step]);
 				} else {
 					showError(ERROR_DATE_IN_PAST);
@@ -199,6 +201,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 			visit.setVisitorNumber(number);
 			showStatus(STATUS_NUMBER + " " + textField.getText());
 			textField.setText("");
+			textField.repaint();
 			showStep(steps[++step]);
 		} catch (NumberFormatException e) {
 			showError(ERROR_INVALID_NUMBER);
@@ -247,6 +250,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 			visitors.add(textField.getText());
 			showStatus(STATUS_VISITOR + " " + Integer.toString(visitors.size()) + ": " + textField.getText());
 			textField.setText("");
+			textField.repaint();
 			if(visit.getVisitorNumber() == visitors.size()) {
 				visit.setVisitorNames(visitors);
 				if(steps[step] == "GUIDE") {

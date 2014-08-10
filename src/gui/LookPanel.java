@@ -5,24 +5,18 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -32,11 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneLayout;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 
 import storage.Storage;
 import storage.StorageException;
@@ -57,7 +47,10 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String LABEL_NEXT     = "Next";
 	private static final String LABEL_SAVE     = "Save";
 	private static final String LABEL_LOOK_UP  = "New Look Up";
-	private static final String LABEL_VISITS   = "Visits: ";
+	private static final String LABEL_BACK     = "Back";
+	private static final String LABEL_VISITORS = "choose a line and press the buton to cancel visit or list visitors";
+	private static final String LABEL_CANCEL   = "cancel";
+	private static final String LABEL_LIST     = "list";
 	
 	private static final String STATUS_SUCCESS   = "Success!";
 	private static final String STATUS_NO_VISITS = "No visits found";
@@ -67,8 +60,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String ERROR_EMPTY_DATE = "Date can not be empty";
 	private static final String ERROR_DATE       = "Invalid date";
 	private static final String ERROR_SYSTEM     = "System error";
+	private static final String ERROR_VISITORS   = "Visitors list available only for guided visits";
 	
-    final static int extraWindowWidth = 100;
+    final static int extraWindowWidth = 320;
 	
     // Reusable GUI elements:
     
@@ -98,6 +92,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	// Cancel button
 	private JButton cancelButton;
 	
+	// Visitors button
+	private JButton visitorsButton;
+	
     // Storage
     private Storage storage;
     
@@ -107,11 +104,16 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
     // Visitor list pane
     private JPanel listPane;
     
-    // List of visits to show
+    // List of visits to show 
     private JList<Visit> list;
-	private DefaultListModel<Visit> listModel;
+    private JList<String> visitorsList;
+	private DefaultListModel<Visit> visitsModel;
+	private DefaultListModel<String> visitorsModel;
+	private JScrollPane listScroller;
+	private JScrollPane visitorsScroller;
+	private JPanel buttonPane;
+	private JLabel buttonsLabel;
 	
-
 	//Make the panel wider than it really needs, so
     //the window's wide enough for the tabs to stay
     //in one row.
@@ -148,9 +150,10 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
     public void keyTyped(KeyEvent arg0) {}
 	
 	public void execute(String command) {
+		errorLabel.setVisible(false);
 		switch(command) {
 		case "NEW":
-			listModel.removeAllElements();
+			visitsModel.removeAllElements();
 			listPane.setVisible(false);
 			label.setVisible(true);
 			chooseSearchRadio.setVisible(true);
@@ -175,6 +178,12 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 			break;
 		case "SAVE":
 			saveVisits();
+			break;
+		case "VISITORS":
+			showVisitors();
+			break;		
+		case "BACK":
+			backToVisits();
 			break;
 		}
 	}
@@ -211,15 +220,20 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 			errorLabel.setText(ERROR_NAME);
 		} else {
 			visits = storage.get(textField.getText());
+			textField.setText("");
+			textField.repaint();
 			showStep("SHOW");
 		}
 	}
 	
-	private void acceptDate() {
+	private void acceptDate() 
+	{
 		if (textField.getText().length() == 0) {
 			errorLabel.setText(ERROR_EMPTY_DATE);
 		} else {
 			String text = textField.getText();
+			textField.setText("");
+			textField.repaint();
 			try {
 				Date date = Visit.dateFormat.parse(text);
 				visits = storage.get(date);
@@ -234,18 +248,73 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	{
 		int index = list.getSelectedIndex();
 		if(index < 0)
-			return;
-		System.out.println(index);
-		
+			return;	
 		try {
-			storage.delete(listModel.getElementAt(index));
+			storage.delete(visitsModel.getElementAt(index));
 		} catch (StorageException e) {
 			showError(ERROR_SYSTEM);
 		}
-		listModel.removeElementAt(index);
+		visitsModel.removeElementAt(index);
 
 	    nextButton.setText(LABEL_SAVE);
 	    nextButton.setActionCommand("SAVE");
+	}
+	
+	private void showVisitors()
+	{
+		visitorsModel.removeAllElements();
+		
+		int index = list.getSelectedIndex();
+		if(index < 0)
+			return;
+		Visit visit = visitsModel.getElementAt(index);
+		if(!visit.hasGuide()) {
+			showError(ERROR_VISITORS);
+			return;
+		}
+		
+		statusLabel.setText(visit.toString());
+		statusLabel.setVisible(true);
+		
+		Vector<String> visitors = visit.getVisitorNames();
+		Collections.sort(visitors);
+		for(String name: visitors){
+			visitorsModel.addElement(" " + String.format("%-40s", name.trim()));
+		}	
+		
+		buttonsLabel.setVisible(false);
+		buttonPane.setVisible(false);
+		listScroller.setVisible(false);
+        visitorsScroller.setVisible(true);	
+	    nextButton.setText(LABEL_BACK);
+	    nextButton.setActionCommand("BACK");
+	}
+	
+	private void backToVisits()
+	{
+		buttonsLabel.setVisible(true);
+		buttonPane.setVisible(true);
+		listScroller.setVisible(true);
+        visitorsScroller.setVisible(false);		
+	    nextButton.setText(LABEL_LOOK_UP);
+	    nextButton.setActionCommand("NEW");
+	}
+		
+	private void showVisits() 
+	{
+		if (visits.size() == 0) {
+			showSuccess(STATUS_NO_VISITS);
+			return;
+		}
+
+		visitsModel.removeAllElements();
+        for (Visit v : visits) {
+        	visitsModel.addElement(v);
+        }
+        
+        listScroller.setVisible(true);
+        visitorsScroller.setVisible(false);
+        listPane.setVisible(true);
 	}
 	
 	private void saveVisits()
@@ -329,28 +398,10 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 			
 			nextButton.setText(LABEL_LOOK_UP);
 			nextButton.setActionCommand("NEW");
-			break;	
+			break;
 		}
 	}
 
-	private void showVisits() {
-		if (visits.size() == 0) {
-			showSuccess(STATUS_NO_VISITS);
-			return;
-		}
-
-		listModel.removeAllElements();
-        for (Visit v : visits) {
-        	System.out.println(v);
-        	listModel.addElement(v);
-        }
-        
-        listPane.setVisible(true);
-	}
-	
-	/**
-	 * Make general layout
-	 */
 	private void makeLayout()
 	{
 		this.setLayout(new BorderLayout());		
@@ -370,30 +421,59 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	
 	private void initListPanel() {
 		listPane = new JPanel();
-		listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-		listPane.setPreferredSize(new Dimension(300, 300));
+
+		listPane.setPreferredSize(new Dimension(520, 300));
 		listPane.add(Box.createRigidArea(new Dimension(0, 5)));
 		listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		listPane.setVisible(false);
-
-		JLabel label = new JLabel(LABEL_VISITS);
-		label.setLabelFor(list);
-		label.setBorder(new EmptyBorder(10, 10, 10, 10));
-		listPane.add(label);
 		
+		addScrollersToListPane();
+		addButtonForListsManagement();
+	}
+	
+	private void addScrollersToListPane()
+	{
 		list = new JList<Visit>();
-		listModel = new DefaultListModel<Visit>();
-		list.setModel(listModel);
+		visitsModel = new DefaultListModel<Visit>();
+		list.setModel(visitsModel);
+		
+		list.setFont(new Font("Courier", Font.BOLD, 12));
 		list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		JScrollPane listScroller = new JScrollPane(list);
+		listScroller = new JScrollPane(list);
 		listScroller.setAlignmentX(LEFT_ALIGNMENT);
 		listPane.add(listScroller);
-
-		cancelButton = new JButton("-");
+		
+		visitorsList  = new JList<String>();
+		visitorsModel = new DefaultListModel<String>();
+		visitorsList.setModel(visitorsModel);
+		
+		visitorsList.setFont(new Font("Courier", Font.BOLD, 12));
+		visitorsList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		visitorsScroller = new JScrollPane(visitorsList);
+		visitorsScroller.setAlignmentX(LEFT_ALIGNMENT);
+		visitorsScroller.setVisible(false);
+		listPane.add(visitorsScroller);
+	}
+	
+	private void addButtonForListsManagement()
+	{
+		buttonPane = new JPanel();
+		
+		cancelButton = new JButton(String.format("%-8s", LABEL_CANCEL));
 		cancelButton.addActionListener(this);
 		cancelButton.addKeyListener(this);
 		cancelButton.setActionCommand("CANCEL");
-		listPane.add(cancelButton);
+		buttonPane.add(cancelButton);
+		
+		visitorsButton = new JButton(String.format("%-8s", LABEL_LIST));
+		visitorsButton.addActionListener(this);
+		visitorsButton.addKeyListener(this);
+		visitorsButton.setActionCommand("VISITORS");
+		buttonPane.add(visitorsButton);
+		
+		buttonsLabel = new JLabel(LABEL_VISITORS);
+		listPane.add(buttonsLabel);
+		listPane.add(buttonPane);
 	}
 	
 	private void initErrorPanel()
@@ -415,7 +495,6 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		add(northPnl, BorderLayout.NORTH);
 	}
 	
-
 	private void initInputPanel()
 	{
 		label = new JLabel();

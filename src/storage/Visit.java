@@ -1,4 +1,5 @@
 package storage;
+import java.awt.Color;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -197,16 +198,13 @@ public class Visit implements Serializable {
 	
 	public String toString()
 	{
-		String description = "Name: " + name 
-				+ " Date: " + dateFormat.format(date) 
-				+ " Number of visitors: " + visitorNumber
-				+ " Guide: " + (hasGuide() ? " yes" : " no");
-		description += " Price ";
+		String description = "\n " + String.format("%-12s", dateFormat.format(date)) 
+				+ String.format("%-14s", name)
+				+ "visitors: " + String.format("%-4s", Integer.toString(visitorNumber));
+		description += String.format("%-6s", hasGuide() ? "guide" : "");
+		description += " " + String.format("%4s", getPrice()) + " euro";	
 		if(hasReduction())
-			description += "(reduced)";
-		description += ": " + getPrice() + " euro";	
-		if(hasGuide() || hasReduction())
-			description += visitorNames.toString();
+			description += " reduction ";
 		
 		return description;
 	}
