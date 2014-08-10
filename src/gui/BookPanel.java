@@ -106,7 +106,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
     // Storage to save visit
     private Storage storage;
     
-	public BookPanel(Storage storage) {
+	public BookPanel(Storage storage) 
+	{
 		visit = new Visit();
 		visitors = new Vector<String>();
 		this.storage = storage;
@@ -115,11 +116,13 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	}
 
     // Listeners interface methods
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) 
+	{
 		execute(nextButton.getActionCommand());
 	}	
 	
-    public void keyPressed(KeyEvent e) {
+    public void keyPressed(KeyEvent e) 
+    {
         if (e.getKeyCode()==KeyEvent.VK_ENTER){
             execute(nextButton.getActionCommand());
         }
@@ -162,7 +165,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
     }
 
-	private void acceptName() {
+	private void acceptName() 
+	{
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_NAME);			
 		} else {
@@ -174,7 +178,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private void acceptDate() {
+	private void acceptDate() 
+	{
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_DATE);
 		} else {
@@ -197,7 +202,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private void acceptNumber() {
+	private void acceptNumber()
+	{
 		try {
 			int number = Integer.parseInt(textField.getText());
 			if (number == 0) {
@@ -287,7 +293,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private void showStep(String stepName) {
+	private void showStep(String stepName) 
+	{
 		switch (stepName) {
 		case "NAME":			
 			label.setText(LABEL_NAME);
@@ -359,7 +366,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		listPane.setVisible(true);
 	}
 	
-	private void showError(String message) {
+	private void showError(String message)
+	{
 		errorLabel.setText(message);
 		errorLabel.setVisible(true);
 	}

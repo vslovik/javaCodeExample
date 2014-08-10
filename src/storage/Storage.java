@@ -60,7 +60,8 @@ public class Storage {
 		}
 	}
 	
-	private void init(String resourceName) {
+	private void init(String resourceName) 
+	{
 		switch(resourceName){
 		case RESOURCE_VISITS:
 			if (map == null) {
@@ -80,7 +81,8 @@ public class Storage {
 		}
 	}
 	
-	public void reindex(){
+	public void reindex()
+	{
 		for(Visit visit : map.values()) {
 			index.put(visit.getNameKey(), visit.getDateKey());
 		}
@@ -114,18 +116,13 @@ public class Storage {
 	
 	public Vector<Visit> get(String name)
 	{
-		System.out.println(name);
 		Vector<Visit> result = new Vector<Visit>();
 		if(index.size() == 0)
 			return result;
 		String key = index.ceilingKey(name);
-		System.out.println(key);
-		String kk = index.floorKey(name);
-		System.out.println(kk);
 		if(key == null)
 			return result;
 		for(String k : index.tailMap(key, true).values()){
-			System.out.println(k);
 			Visit v = map.get(k);
 			if(!v.getName().equals(name))
 				break;
@@ -155,7 +152,8 @@ public class Storage {
 		return save(RESOURCE_VISITS) && save(RESOURCE_INDEX);
 	}
 	
-	public boolean save(String resourceName) {
+	public boolean save(String resourceName)
+	{
 		ObjectOutputStream stream = null;
 		try {
 			stream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(resourceName)));		

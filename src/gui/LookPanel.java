@@ -117,14 +117,16 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	//Make the panel wider than it really needs, so
     //the window's wide enough for the tabs to stay
     //in one row.
-    public Dimension getPreferredSize() {
+    public Dimension getPreferredSize() 
+    {
         Dimension size = super.getPreferredSize();     
         size.width  += extraWindowWidth;
         size.height += 300;
         return size;
     }
     
-	public LookPanel(Storage storage) {
+	public LookPanel(Storage storage) 
+	{
 		visits = new Vector<Visit>();
 		this.storage = storage;
 		makeLayout();
@@ -132,7 +134,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	}
 	
     // Listeners interface methods
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) 
+	{
 		if(e.getSource() == textField) {
 			execute(nextButton.getActionCommand());
 		} else {
@@ -140,7 +143,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}		
 	}	
 	
-    public void keyPressed(KeyEvent e) {
+    public void keyPressed(KeyEvent e) 
+    {
         if (e.getKeyCode() == KeyEvent.VK_ENTER){
             execute(nextButton.getActionCommand());
         }
@@ -149,7 +153,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
     public void keyReleased(KeyEvent arg0) {}
     public void keyTyped(KeyEvent arg0) {}
 	
-	public void execute(String command) {
+	public void execute(String command)
+	{
 		errorLabel.setVisible(false);
 		switch(command) {
 		case "NEW":
@@ -215,7 +220,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private void acceptName() {
+	private void acceptName() 
+	{
 		if (textField.getText().length() == 0) {
 			errorLabel.setText(ERROR_NAME);
 		} else {
@@ -345,7 +351,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	 * 
 	 * @param step
 	 */
-	private void showStep(String step) {
+	private void showStep(String step)
+	{
 		errorLabel.setVisible(false);
 		statusLabel.setVisible(false);
 		switch (step) {
@@ -419,7 +426,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		initNextButtonPanel();
 	}
 	
-	private void initListPanel() {
+	private void initListPanel() 
+	{
 		listPane = new JPanel();
 
 		listPane.setPreferredSize(new Dimension(520, 300));

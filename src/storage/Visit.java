@@ -1,16 +1,10 @@
 package storage;
-import java.awt.Color;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.Vector;
 import java.util.Scanner;
-
-import console.ClientException;
 
 public class Visit implements Serializable {
 
@@ -23,12 +17,13 @@ public class Visit implements Serializable {
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	public static final SimpleDateFormat sortDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	
-	public long createdAt = 5;
+	public long createdAt;
 	private String name;
 	private Date date;
 	private Integer visitorNumber;
 	private Boolean guide = false;
 	private Boolean reduction = false;
+	
 	private Vector<String> visitorNames = new Vector<String>();
 	
 	public Visit(){
@@ -53,15 +48,6 @@ public class Visit implements Serializable {
 		this.name = name;
 	}
 	
-	public void setName(Scanner input) throws ClientException {
-		System.out.println("Type name:");
-		try {
-			this.name = input.nextLine();
-		} catch (InputMismatchException e) {
-			throw new ClientException("Invalid name.", e);
-		}
-	}
-	
 	public Date getDate()
 	{
 		return date;
@@ -72,23 +58,6 @@ public class Visit implements Serializable {
 		this.date = date;
 	}
 	
-	public void setDate(Scanner input) 
-	throws ClientException
-	{
-		System.out.println("Date dd/mm/yy:");
-		try {
-			Date date = dateFormat.parse(input.nextLine());
-			if (date.compareTo(new Date()) < 0)
-				this.date = date;
-			else
-				throw new ClientException(
-						"You should choose the date in the future.");
-		} catch (ParseException e) {
-			throw new ClientException("Wrong data format! Should be dd/mm/yy.",
-					e);
-		}
-	}
-	
 	public int getVisitorNumber()
 	{
 		return visitorNumber;
@@ -97,16 +66,6 @@ public class Visit implements Serializable {
 	public void setVisitorNumber(int visitorNumber)
 	{
 		this.visitorNumber = visitorNumber;
-	}
-	
-	public void setVisitorNumber(Scanner input)
-		throws ClientException {
-			System.out.println("Type number of visitors:");
-		try {
-			this.visitorNumber = input.nextInt();
-		} catch (InputMismatchException e) {
-			throw new ClientException("Invalid number of visitors.", e);
-		}
 	}
 
 	public Boolean hasGuide()
@@ -154,7 +113,8 @@ public class Visit implements Serializable {
 		return visitorNames;
 	}
 	
-	public int getPrice() {
+	public int getPrice() 
+	{
 		int sum = 0;
 		int[] prices = getPrices();
 		sum += visitorNumber * prices[0];
@@ -178,7 +138,8 @@ public class Visit implements Serializable {
 		}
 	}
 	
-	public String getDateKey(){
+	public String getDateKey()
+	{
 		return sortDateFormat.format(date) + "-" + name + "-" + Long.toString(createdAt);
 	}
 	
@@ -186,7 +147,8 @@ public class Visit implements Serializable {
 		return name + "-" + sortDateFormat.format(date) + "-" + Long.toString(createdAt);
 	}
 	
-	public boolean validate(){
+	public boolean validate()
+	{
 		if(name.length() == 0)
 			return false;
 		if(visitorNumber == 0)
@@ -198,7 +160,7 @@ public class Visit implements Serializable {
 	
 	public String toString()
 	{
-		String description = "\n " + String.format("%-12s", dateFormat.format(date)) 
+		String description = " " + String.format("%-12s", dateFormat.format(date)) 
 				+ String.format("%-14s", name)
 				+ "visitors: " + String.format("%-4s", Integer.toString(visitorNumber));
 		description += String.format("%-6s", hasGuide() ? "guide" : "");
@@ -209,25 +171,4 @@ public class Visit implements Serializable {
 		return description;
 	}
 	
-	public void setUp(String methodName, Scanner input)
-	{
-		boolean ok = false;
-		do {
-			try {
-				Class<?> paramTypes[] = new Class[1];
-				paramTypes[0] = Scanner.class;
-				Method method = this.getClass().getMethod(methodName, paramTypes);
-				method.invoke(this, input);
-				ok = true;
-			} catch (NoSuchMethodException e) {
-				System.out.println(e);
-			} catch (IllegalAccessException e) {
-			} catch(InvocationTargetException e) {
-				System.out.println(e);
-				System.out.println("Retry.");
-				ok = false;
-			}
-		} while (!ok);
-	}
-
 }
