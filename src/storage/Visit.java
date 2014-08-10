@@ -20,6 +20,7 @@ public class Visit implements Serializable {
 	public static final int guidePriceReduced = 40;
 	public static final int applyReductionTreshold = 10;
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+	public static final SimpleDateFormat sortDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	
 	public long createdAt = 5;
 	private String name;
@@ -177,11 +178,11 @@ public class Visit implements Serializable {
 	}
 	
 	public String getDateKey(){
-		return dateFormat.format(date) + "-" + name + " " + Long.toString(createdAt);
+		return sortDateFormat.format(date) + "-" + name + " " + Long.toString(createdAt);
 	}
 	
 	public String getNameKey(){
-		return name + "-" + dateFormat.format(date) + " " + Long.toString(createdAt);
+		return name + "-" + sortDateFormat.format(date) + " " + Long.toString(createdAt);
 	}
 	
 	public boolean validate(){

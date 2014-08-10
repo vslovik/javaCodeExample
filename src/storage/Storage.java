@@ -1,4 +1,5 @@
 package storage;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -32,7 +33,14 @@ public class Storage {
 		try {
 			stream = new ObjectInputStream(	new BufferedInputStream(new FileInputStream(resourceName)));
 			if(stream != null) {
-				map = (TreeMap<String, Visit>) stream.readObject();
+				switch(resourceName){
+				case RESOURCE_VISITS:
+					map = (TreeMap<String, Visit>) stream.readObject();
+					break;
+				case RESOURCE_INDEX:
+					index = (TreeMap<String, String>) stream.readObject();
+					break;
+				}			
 			}		
 		} catch (FileNotFoundException e) {
 			System.out.println("ATTENSION: file " + resourceName + " does not exsists.");
@@ -63,9 +71,9 @@ public class Storage {
 			if(index == null) {
 				index = new TreeMap<String, String>();
 				if(map.size() != 0){
-					System.out.println("Reindexing...");
+					System.out.println("reindexing...");
 					reindex();
-					System.out.println("Done");
+					System.out.println("done");
 				} 			
 			}
 			break;

@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
+
 import storage.Visit;
 
 public class GeneratorCsv {
@@ -31,7 +32,7 @@ public class GeneratorCsv {
 	public GeneratorCsv() {
 		String path = System.getProperty("user.dir");
 		
-		span = ((long)2*365*24*60*60)*DATE_SPAN_YEARS;
+		span = ((long)DATE_SPAN_YEARS*365*24*60*60)*1000;
 		random = new Random();
 	
 		try {
@@ -89,7 +90,7 @@ public class GeneratorCsv {
 	}
 	
 	private Date getRandomDate(){
-		return new Date((long) (new Date().getTime() + Math.random()*span));
+		return new Date(System.currentTimeMillis() + (long) 86400000*random.nextInt(DATE_SPAN_YEARS*365));
 	}
 	
 	public static void main(String[] args) {
