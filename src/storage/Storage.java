@@ -114,13 +114,18 @@ public class Storage {
 	
 	public Vector<Visit> get(String name)
 	{
+		System.out.println(name);
 		Vector<Visit> result = new Vector<Visit>();
 		if(index.size() == 0)
 			return result;
 		String key = index.ceilingKey(name);
+		System.out.println(key);
+		String kk = index.floorKey(name);
+		System.out.println(kk);
 		if(key == null)
 			return result;
 		for(String k : index.tailMap(key, true).values()){
+			System.out.println(k);
 			Visit v = map.get(k);
 			if(!v.getName().equals(name))
 				break;
@@ -134,7 +139,7 @@ public class Storage {
 		Vector<Visit> result = new Vector<Visit>();
 		if(map.size() == 0)
 			return result;
-		String dateStr = Visit.dateFormat.format(date);
+		String dateStr = Visit.sortDateFormat.format(date);
 		String key = map.ceilingKey(dateStr);
 		if(key == null)
 			return result;
@@ -154,8 +159,16 @@ public class Storage {
 		ObjectOutputStream stream = null;
 		try {
 			stream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(resourceName)));		
-			if(stream != null) 
-				stream.writeObject(map);
+			if(stream != null) {
+				switch(resourceName){
+				case RESOURCE_VISITS:
+					stream.writeObject(map);
+					break;
+				case RESOURCE_INDEX:
+					stream.writeObject(index);
+					break;
+				}			
+			}	
 			return true;		
 		} catch (IOException e) {
 			System.out.println("I/O ERROR");

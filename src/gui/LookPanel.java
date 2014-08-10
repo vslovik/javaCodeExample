@@ -105,7 +105,8 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
     private Vector<Visit> visits;
     
     // Visitor list pane
-    private JPanel listPane = new JPanel();
+    private JPanel listPane;
+    
     // List of visits to show
     private JList<Visit> list;
 	private DefaultListModel<Visit> listModel;
@@ -130,11 +131,15 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	
     // Listeners interface methods
 	public void actionPerformed(ActionEvent e) {
-		execute(nextButton.getActionCommand());
+		if(e.getSource() == textField) {
+			execute(nextButton.getActionCommand());
+		} else {
+			execute(e.getActionCommand());
+		}		
 	}	
 	
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode()==KeyEvent.VK_ENTER){
+        if (e.getKeyCode() == KeyEvent.VK_ENTER){
             execute(nextButton.getActionCommand());
         }
     }
@@ -145,7 +150,7 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	public void execute(String command) {
 		switch(command) {
 		case "NEW":
-			listPane.removeAll();
+			listModel.removeAllElements();
 			listPane.setVisible(false);
 			label.setVisible(true);
 			chooseSearchRadio.setVisible(true);
@@ -319,8 +324,7 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 			searchByNameRadio.setVisible(false);
 			searchByDateRadio.setVisible(false);	
 			textField.setVisible(false);
-			
-			
+					
 			showVisits();
 			
 			nextButton.setText(LABEL_LOOK_UP);
@@ -335,35 +339,13 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 			return;
 		}
 
+		listModel.removeAllElements();
         for (Visit v : visits) {
+        	System.out.println(v);
         	listModel.addElement(v);
         }
- 
         
-        listPane.removeAll();
-        listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-        listPane.setPreferredSize(new Dimension(300, 300));
-        listPane.add(Box.createRigidArea(new Dimension(0,5)));      
-        listPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         listPane.setVisible(true);
-        
-		list = new JList<Visit>();
-        listModel = new DefaultListModel<Visit>();
-        list.setModel(listModel);
-        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);    
-        JScrollPane listScroller = new JScrollPane(list);
-        listScroller.setAlignmentX(LEFT_ALIGNMENT);
-        listPane.add(listScroller);
-        
-        JLabel label = new JLabel(LABEL_VISITS);
-        label.setLabelFor(list);
-        listPane.add(label);
-        
-        cancelButton = new JButton("-");
-		cancelButton.addActionListener(this);
-		cancelButton.addKeyListener(this);	
-		cancelButton.setActionCommand("CANCEL");
-        listPane.add(cancelButton);
 	}
 	
 	/**
@@ -376,11 +358,42 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		// North panel
 		initErrorPanel();
 		
+		// List panel
+		initListPanel();
+		
 		// Center panel
 		initInputPanel();
 				
 		// South panel
 		initNextButtonPanel();
+	}
+	
+	private void initListPanel() {
+		listPane = new JPanel();
+		listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
+		listPane.setPreferredSize(new Dimension(300, 300));
+		listPane.add(Box.createRigidArea(new Dimension(0, 5)));
+		listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		listPane.setVisible(false);
+
+		JLabel label = new JLabel(LABEL_VISITS);
+		label.setLabelFor(list);
+		label.setBorder(new EmptyBorder(10, 10, 10, 10));
+		listPane.add(label);
+		
+		list = new JList<Visit>();
+		listModel = new DefaultListModel<Visit>();
+		list.setModel(listModel);
+		list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		JScrollPane listScroller = new JScrollPane(list);
+		listScroller.setAlignmentX(LEFT_ALIGNMENT);
+		listPane.add(listScroller);
+
+		cancelButton = new JButton("-");
+		cancelButton.addActionListener(this);
+		cancelButton.addKeyListener(this);
+		cancelButton.setActionCommand("CANCEL");
+		listPane.add(cancelButton);
 	}
 	
 	private void initErrorPanel()

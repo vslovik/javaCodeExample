@@ -178,11 +178,11 @@ public class Visit implements Serializable {
 	}
 	
 	public String getDateKey(){
-		return sortDateFormat.format(date) + "-" + name + " " + Long.toString(createdAt);
+		return sortDateFormat.format(date) + "-" + name + "-" + Long.toString(createdAt);
 	}
 	
 	public String getNameKey(){
-		return name + "-" + sortDateFormat.format(date) + " " + Long.toString(createdAt);
+		return name + "-" + sortDateFormat.format(date) + "-" + Long.toString(createdAt);
 	}
 	
 	public boolean validate(){
