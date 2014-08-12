@@ -81,6 +81,11 @@ public class Storage {
 		}
 	}
 	
+	public int size()
+	{
+		return map.size();
+	}
+	
 	public void reindex()
 	{
 		for(Visit visit : map.values()) {

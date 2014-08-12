@@ -5,7 +5,6 @@ import java.util.Scanner;
 import java.util.Date;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.*;
 import java.util.Vector;
 import java.text.ParseException;
 
@@ -15,10 +14,39 @@ import storage.Visit;
 
 public class Client {
 
-	private static final String LABEL_NAME            = "Type name:";
-	private static final String LABEL_DATE            = "Date dd/mm/yyyy:";
-	private static final String LABEL_VISITORS_NUMBER = "Type visitors number:";
+	private static final int MAX_VISITS_TO_DISPLAY = 10;
+	
+	private static final String MENU_LIST   = "[L]ist visits";
+	private static final String MENU_BOOK   = "[B]ook visit";
+	private static final String MENU_CANCEL = "[C]ancel visit";
+	private static final String MENU_FIND   = "[F]ind visit";
+	private static final String MENU_SAVE   = "[S]ave";
+	private static final String MENU_EXIT   = "[E]xit";
+	private static final String MENU_CHOOSE = "Choose: ";
+	
+	private static final String MENU_SEARCH_BY_NAME   = "Search by [N]ame";
+	private static final String MENU_SEARCH_BY_DATE   = "Search by [D]ate";
+	
+	private static final String LABEL_NAME            = "Type name: ";
+	private static final String LABEL_DATE            = "Date dd/mm/yyyy: ";
+	private static final String LABEL_VISITORS_NUMBER = "Type visitors number: ";
 	private static final String LABEL_RETRY           = "Retry";
+	private static final String LABEL_GUIDE           = "Do you need a guide? Y/N: ";
+	private static final String LABEL_REDUCTION_INFO  = "With visitors number more than %s you have right for reduction";
+	
+	private static final String LABEL_REDUCTION_QUESTION = "Would you ask for reduction? Y/N:";
+	
+	private static final String LABEL_VISITORS        = "Type all visitor names: ";
+	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input berfore typing all visitors names names";
+	private static final String LABEL_NO_VISITS       = "No visits booked";
+	private static final String LABEL_YOUR_VISIT      = "Your visit";
+	private static final String LABEL_SAVE            = "Do you want to save changes? Y/N: ";
+	private static final String LABEL_CHANGES_SAVED   = "Changes saved";
+	private static final String LABEL_CANCEL_SUCCESS  = "You've just canceled the visit (Not saved yet): ";
+	private static final String LABEL_LAST_VISITS     = "Last visits: ";
+	private static final String LABEL_VISITS_NUMBER   = "Number of visits found: ";
+	private static final String LABEL_CANCEL          = "Choose visit to cancel: ";
+	private static final String LABEL_CANCEL_THIS     = "Cancel this visit?";
 	
 	private static final String ERROR_EMPTY_NAME      = "Name can not be empty";
 	private static final String ERROR_INVALID_NAME    = "Invalid name";
@@ -27,13 +55,15 @@ public class Client {
 	private static final String ERROR_INVALID_DATE    = "Invalid date";
 	private static final String ERROR_EMPTY_NUMBER    = "Visitors number can not be empty";
 	private static final String ERROR_INVALID_NUMBER  = "Invalid number";
-	private static final String ERROR_GUIDE           = "Tell if guide is needed";
-	private static final String ERROR_REDUCTION       = "Tell if you ask for reduction";
+	private static final String ERROR_GUIDE           = "You did not type visitors names, guide can not be assigned to your visit";
+	private static final String ERROR_REDUCTION       = "With visitors number less than %s you have no right for reduction";
 	private static final String ERROR_SYSTEM          = "System error";
+	private static final String ERROR_CANCEL          = "Wrong visit number. Choose visit to cancel";
 	
-	Visit visit;
-	Scanner input;
-	Storage storage;
+	private Visit visit;
+	private Vector<Visit> visits;
+	private Scanner input;
+	private Storage storage;
 	
 	public static void main(String[] args) {
 		Client client  = new Client();
@@ -45,6 +75,7 @@ public class Client {
 		input   = new Scanner(System.in);
 		storage = new Storage();
 		visit   = new Visit();
+		visits  = new Vector<Visit>();
 	}
 	
 	public void makeChoice()
@@ -52,34 +83,33 @@ public class Client {
 		char choice;
 		do {
 			System.out.println();
-			System.out.println("[L]ist visits");
-			System.out.println("[B]ook visit");
-			System.out.println("[C]ancel visit");
-			System.out.println("[F]ind visit");
-			System.out.println("[S]ave");
-			System.out.println("[E]xit");
+			System.out.println(MENU_LIST);
+			System.out.println(MENU_BOOK);
+			System.out.println(MENU_CANCEL);
+			System.out.println(MENU_FIND);
+			System.out.println(MENU_SAVE);
+			System.out.println(MENU_EXIT);
 			System.out.println();
-			System.out.print("Choose: ");
+			System.out.print(MENU_CHOOSE);
 			choice = input.next().charAt(0);
 			input.nextLine();
 			switch (choice) {
 			case 'L':
+				find();
 				list();
 				break;
 			case 'B':
 				book();
-				break;
+				break;	
 			case 'C':
 				cancel();
 				break;
 			case 'F':
-				Vector<Visit> visits = search();
-				System.out.println("List of visits found: ");
-				show(visits);
+				search();
+				list();
 				break;
 			case 'S':
-				if (storage.save())
-					System.out.println("Changes saved.");
+				save();
 				break;
 			case 'E':
 				exit();
@@ -88,147 +118,218 @@ public class Client {
 		} while (choice != 'E');
 	}
 	
-	private void list() {
-		Vector<Visit> visits = storage.get();
-		if (visits.size() == 0)
-			System.out.println("No visits booked.");
-		else
-			show(visits);
-	}
-	
-	private void cancel() {
-		Vector<Visit> visits = (storage.get().size() <= 10) ? storage.get()
-				: search();
-		if (visits.size() == 1) {
-			try {
-				storage.delete(visits.get(0));
-			} catch (StorageException e) {
-				System.out.println(e);
-			}
-			System.out.println("You've just canceled the visit "
-					+ visits.get(0) + " (Not saved yet.)");
-			return;
-		}
-		enumerate(visits);
-		boolean ok = false;
-		do {
-			System.out.println("Choose visit to cancel: 1..."
-					+ (visits.size()));
-			int index = input.nextInt();
-			if (index < visits.size()) {
-				ok = true;
-				try {
-					storage.delete(visits.get(index));
-				} catch (StorageException e) {
-					System.out.println(e);
-				}
-				System.out.println("You've just canceled the visit "
-						+ visits.get(index) + " (Not saved yet.)");
-			} else {
-				System.out.println("Wrong number! Choose visit to cancel: 0..."
-						+ visits.size());
-			}
-		} while (!ok);
-	}
-
-	private Vector<Visit> search() {
-		char choice;
-		boolean ok;
-		Vector<Visit> visits;
-		do {
-			System.out.println();
-			System.out.println("Search by [N]ame");
-			System.out.println("Search by [D]ate");
-			System.out.println();
-			System.out.print("Choose: ");
-			choice = input.next().charAt(0);
-			input.nextLine();
-			if (choice == 'N') {
-				System.out.println("Type name:");
-				String name = input.nextLine();
-				visits = storage.get(name);
-			} else {
-				System.out.println("Date dd/mm/yyyy:");
-				Date date = new Date();
-				String ind = input.nextLine();
-				DateFormat df = new SimpleDateFormat("dd/mm/yyyy");
-				do {
-					try {
-						date = df.parse(ind);
-						ok = true;
-					} catch (ParseException e) {
-						System.out.println("Unable to parse " + ind + "Retry!");
-						ok = false;
-					}
-				} while (!ok);
-				visits = storage.get(date);
-			}
-		} while (choice != 'N' && choice != 'D');
-		return visits;
-	}
-
-	private void enumerate(Vector<Visit> visits) {
-		int i = 0;
-		for (Visit v : visits)
-			System.out.println(++i + " " + v.toString());
-	}
-
-	private void show(Vector<Visit> visits) {
-		if(visits.size() == 0)
-			return;
-		for (Visit v : visits)
-			System.out.println(v);
-	}
-
-
-
 	private void exit() {
 		char answer;
 		do {
-			System.out.println("Do you want to save changes? Y/N:");
+			System.out.println(LABEL_SAVE);
 			answer = input.next().charAt(0);
 			input.nextLine();
 			if (answer == 'Y') {
-				storage.save();
+				save();
 			}
 		} while (answer != 'Y' && answer != 'N');
 		input.close();
 	}
 	
-	// ==============================================
-	
-	private void book() {
-		boolean ok;
+	private void search() {
+		visit = new Visit();
+		char choice;
 		do {
-			ok = true;
-			try {
-				askForNameDateNumber();
-				askForGuide();
-				askForReduction();
-				
-				storage.put(visit);
-				System.out.println("Your visit: ");
-				
-				show();
-				
-			} catch (StorageException e) {
-				System.out.println(e);
+			System.out.println();
+			System.out.println(MENU_SEARCH_BY_NAME);
+			System.out.println(MENU_SEARCH_BY_DATE);
+			System.out.println();
+			System.out.print(MENU_CHOOSE);
+			choice = input.next().charAt(0);
+			input.nextLine();
+			if (choice == 'N') {
+				setName();
+				find(visit.getName());
+			} else {
+				setDate();
+				find(visit.getDate());
 			}
-		} while (!ok);
+		} while (choice != 'N' && choice != 'D');
 	}
-	
-	private void askForGuide() {
+
+	private void cancel() {
+		visit = new Visit();
+		if(count() < 10) {
+			find();
+		} else {
+			search();
+		}
+		
+		if (visits.size() == 1) {
+			visit = visits.get(0);
+			confirmToCancel();
+		} else {
+			pickToCancel(); 
+		}
+	}
+
+	private void confirmToCancel() {
 		char answer;
 		do {
-			System.out.println("Do you need a guide? Y/N:");
+			System.out.println(LABEL_CANCEL_THIS);
+			System.out.println(LABEL_CANCEL_THIS);
 			answer = input.next().charAt(0);
 			input.nextLine();
 			if (answer == 'Y') {
-				askForVisitors();
-				visit.setGuide();
-				if (!visit.hasGuide() && (visit.getVisitorNames().size() == 0)) {
-					System.out.println("You did not type visitors names, "
-							+ "guide can not be assigned to your visit");
+				visit = visits.get(0);
+				delete();
+			}
+		} while (answer != 'Y' && answer != 'N');
+	}
+	
+	private void pickToCancel() 
+	{
+		boolean ok;
+		do {
+			ok = true;
+			askWhatVisitToCancel(); 
+			delete();
+		} while (!ok);
+	}
+	
+	private boolean askWhatVisitToCancel() 
+	{
+		enumerate();
+		System.out.println(LABEL_CANCEL);
+		try {
+			String text = input.nextLine();
+			if (text.length() == 0) {
+				retry(ERROR_CANCEL);
+				return false;
+			}
+			int index = Integer.parseInt(text);
+			if (index <= 0) {
+				retry(ERROR_CANCEL);
+				return false;
+			}
+			visit = visits.get(index);
+		} catch (NumberFormatException e) {
+			retry(ERROR_CANCEL);
+			return false;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			retry(ERROR_CANCEL);
+			return false;
+		}	
+		return true;
+	}
+	
+	// ============= storage operations =====================//
+	
+	private int count()
+	{
+		return storage.size();
+	}
+	
+	private void find()
+	{
+		visits = storage.get();
+	}
+	
+	private void find(String name)
+	{
+		visits = storage.get(visit.getName());
+	}
+	
+	private void find(Date date)
+	{
+		visits = storage.get(visit.getName());
+	}
+	
+	private void save()
+	{
+		if (storage.save()) {
+			System.out.println(LABEL_CHANGES_SAVED);
+		} else {
+			System.out.println(ERROR_SYSTEM);
+		}
+	}
+	
+	private void delete(){
+		try {
+			storage.delete(visit);
+			System.out.println(LABEL_CANCEL_SUCCESS);
+			System.out.println(visit);
+		} catch (StorageException e) {
+			System.out.println(ERROR_SYSTEM);
+		}
+	}
+
+	// =========== display ==================//
+
+	private void enumerate() {
+		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
+		System.out.println(String.format(LABEL_LAST_VISITS));
+		int i = 0;
+		for (Visit v : visits) {
+			System.out.println(
+					"[" + visits.indexOf(v) + "]"
+					+ " " + v.toString()
+					);
+			if(++i == MAX_VISITS_TO_DISPLAY){
+				break;
+			}
+		}
+	}
+
+	private void list() {
+		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
+		System.out.println(String.format(LABEL_LAST_VISITS));
+		int i = 0;
+		if (visits.size() == 0)
+			System.out.println(LABEL_NO_VISITS);
+		for (Visit v : visits) {
+			System.out.println(v);
+			if(++i == MAX_VISITS_TO_DISPLAY){
+				break;
+			}
+		}
+	}
+
+	private void show() {
+		System.out.println(LABEL_YOUR_VISIT);
+		System.out.println(visit);
+	}
+	
+	//=======================================//
+	
+	private void book() {
+		visit = new Visit();
+		askForData();
+		try {
+			storage.put(visit);	
+			show();
+		} catch (StorageException e) {
+			System.out.println(ERROR_SYSTEM);
+		}
+	}
+	
+	private void askForData() {
+		boolean ok;
+		do {
+			ok = true;
+			askForNameDateNumber();
+			askForGuide();
+			askForReduction();
+		} while (!ok);
+	}
+
+	private void askForGuide() {
+		char answer;
+		do {
+			System.out.println(LABEL_GUIDE);
+			answer = input.next().charAt(0);
+			input.nextLine();
+			if (answer == 'Y') {
+				askForVisitors();			
+				if (visit.getVisitorNames().size() == 0) {
+					System.out.println(ERROR_GUIDE);
+				} else {
+					visit.setGuide();
 				}
 			}
 		} while (answer != 'Y' && answer != 'N');
@@ -239,48 +340,36 @@ public class Client {
 		if (visitorNumber > Visit.applyReductionTreshold) {
 			char answer;
 			do {
-				System.out.println("Number of visitors, "
-						+ visit.getVisitorNumber() + " more than "
-						+ Visit.applyReductionTreshold);
-				System.out.println("You have right for reduction. "
-						+ "Would you ask for it? Y/N:");
+				System.out.println(String.format(LABEL_REDUCTION_INFO, Visit.applyReductionTreshold));
+				System.out.println(LABEL_REDUCTION_QUESTION);
 				answer = input.next().charAt(0);
 				input.nextLine();
 				if (answer == 'Y') {
-					askForVisitors();
-					visit.setReduction();
-					if ((visit.getVisitorNumber() < Visit.applyReductionTreshold)
-							&& !visit.hasReduction()) {
-						System.out.println("Number of visitors, "
-								+ visit.getVisitorNumber() + " not more than "
-								+ Visit.applyReductionTreshold);
-						System.out.println("You have no right for reduction.");
+					askForVisitors();				
+					if (visit.getVisitorNumber() < Visit.applyReductionTreshold) {
+						System.out.println(String.format(ERROR_REDUCTION, Visit.applyReductionTreshold));
+					} else {
+						visit.setReduction();
 					}
 				}
 			} while (answer != 'Y' && answer != 'N');
 		}
 	}
-	
+		
 	private void askForVisitors() {
-		int visitorNumber = visit.getVisitorNumber();
-		System.out.println("Type all " + visitorNumber + " visitor names:");
-		System.out.println("Type Exit to interrupt input berfore reaching "
-				+ visitorNumber + " names");
+		System.out.println(LABEL_VISITORS);
+		System.out.println(LABEL_VISITORS_EXIT);
+		String text = input.nextLine();
 		Vector<String> visitorNames = new Vector<String>();
-		;
-		for (int i = 0; i < visitorNumber; i++) {
-			if ("Exit" == input.nextLine()) {
+		for (int i = 0; i < visit.getVisitorNumber(); i++) {
+			if ("Exit" == text) {
 				visit.setVisitorNumber(visitorNames.size());
 				break;
 			} else {
-				visitorNames.add(input.nextLine());
+				visitorNames.add(text);
 			}
 		}
 		visit.setVisitorNames(visitorNames);
-	}
-	
-	private void show() {
-		System.out.println(visit);
 	}
 	
 	private void askForNameDateNumber() 
@@ -309,7 +398,6 @@ public class Client {
 		} while (!ok);
 	}
 	
-	
 	private void retry(String message)
 	{
 		System.out.println(message);
@@ -329,10 +417,10 @@ public class Client {
 		} catch (InputMismatchException e) {
 			retry(ERROR_INVALID_NAME);
 			return false;
-		}
-		
+		}	
 		return true;
 	}
+	
 	
 	public boolean setDate()
 	{
@@ -341,6 +429,7 @@ public class Client {
 			String text = input.nextLine();
 			if (text.length() == 0) {
 				retry(ERROR_EMPTY_DATE);
+				return false;
 			}
 			Date date = Visit.dateFormat.parse(text);
 			if (date.compareTo(new Date()) <= 0) {
@@ -351,7 +440,7 @@ public class Client {
 		} catch (ParseException e) {
 			retry(ERROR_INVALID_DATE);
 			return false;
-		}
+		}	
 		return true;
 	}
 	
