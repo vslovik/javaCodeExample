@@ -8,18 +8,34 @@ import java.lang.reflect.Method;
 import java.text.*;
 import java.util.Vector;
 import java.text.ParseException;
+
 import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
 
 public class Client {
 
+	private static final String LABEL_NAME            = "Type name:";
+	private static final String LABEL_DATE            = "Date dd/mm/yyyy:";
+	private static final String LABEL_VISITORS_NUMBER = "Type visitors number:";
+	private static final String LABEL_RETRY           = "Retry";
+	
+	private static final String ERROR_EMPTY_NAME      = "Name can not be empty";
+	private static final String ERROR_INVALID_NAME    = "Invalid name";
+	private static final String ERROR_EMPTY_DATE      = "Date can not be empty";
+	private static final String ERROR_DATE_IN_PAST    = "Choose a date in the future";
+	private static final String ERROR_INVALID_DATE    = "Invalid date";
+	private static final String ERROR_EMPTY_NUMBER    = "Visitors number can not be empty";
+	private static final String ERROR_INVALID_NUMBER  = "Invalid number";
+	private static final String ERROR_GUIDE           = "Tell if guide is needed";
+	private static final String ERROR_REDUCTION       = "Tell if you ask for reduction";
+	private static final String ERROR_SYSTEM          = "System error";
+	
 	Visit visit;
 	Scanner input;
 	Storage storage;
 	
 	public static void main(String[] args) {
-
 		Client client  = new Client();
 		client.makeChoice();	
 	}
@@ -36,10 +52,10 @@ public class Client {
 		char choice;
 		do {
 			System.out.println();
-			System.out.println("[L]ist booking");
+			System.out.println("[L]ist visits");
 			System.out.println("[B]ook visit");
 			System.out.println("[C]ancel visit");
-			System.out.println("[F]ind booking");
+			System.out.println("[F]ind visit");
 			System.out.println("[S]ave");
 			System.out.println("[E]xit");
 			System.out.println();
@@ -79,99 +95,7 @@ public class Client {
 		else
 			show(visits);
 	}
-
-	private void book() {
-		boolean ok;
-		do {
-			ok = true;
-			try {
-				visit = bookVisit();
-				askForGuide();
-				askForReduction();
-				storage.put(visit);
-				System.out.println("Your booking data: ");
-				show();
-			} catch (ClientException e) {
-				input.nextLine();
-				System.out.println(e);
-				System.out.println("Retry.");
-				ok = false;
-			} catch (StorageException e) {
-				System.out.println(e);
-			}
-		} while (!ok);
-	}
 	
-	private Visit bookVisit() throws ClientException
-	{
-		setUp("setName");
-		setUp("setDate");
-		setUp("setVisitorNumber");		
-		return visit;	
-	}
-
-	private void askForGuide() {
-		char answer;
-		do {
-			System.out.println("Do you need a guide? Y/N:");
-			answer = input.next().charAt(0);
-			input.nextLine();
-			if (answer == 'Y') {
-				listVisitorNames();
-				visit.setGuide();
-				if (!visit.hasGuide() && (visit.getVisitorNames().size() == 0)) {
-					System.out.println("You did not type visitors names, "
-							+ "guide can not be assigned to your visit");
-				}
-			}
-		} while (answer != 'Y' && answer != 'N');
-	}
-
-	private void askForReduction() {
-		int visitorNumber = visit.getVisitorNumber();
-		if (visitorNumber > Visit.applyReductionTreshold) {
-			char answer;
-			do {
-				System.out.println("Number of visitors, "
-						+ visit.getVisitorNumber() + " more than "
-						+ Visit.applyReductionTreshold);
-				System.out.println("You have right for reduction. "
-						+ "Would you ask for it? Y/N:");
-				answer = input.next().charAt(0);
-				input.nextLine();
-				if (answer == 'Y') {
-					listVisitorNames();
-					visit.setReduction();
-					if ((visit.getVisitorNumber() < Visit.applyReductionTreshold)
-							&& !visit.hasReduction()) {
-						System.out.println("Number of visitors, "
-								+ visit.getVisitorNumber() + " not more than "
-								+ Visit.applyReductionTreshold);
-						System.out.println("You have no right for reduction.");
-					}
-				}
-			} while (answer != 'Y' && answer != 'N');
-		}
-	}
-
-	private void listVisitorNames() {
-		int visitorNumber = visit.getVisitorNumber();
-		System.out.println("Type all " + visitorNumber + " visitor names:");
-		System.out.println("Type Exit to interrupt input berfore reaching "
-				+ visitorNumber + " names");
-		Vector<String> visitorNames = new Vector<String>();
-		;
-		for (int i = 0; i < visitorNumber; i++) {
-			if ("Exit" == input.nextLine()) {
-				visit.setVisitorNumber(visitorNames.size());
-				break;
-			} else {
-				visitorNames.add(input.nextLine());
-			}
-		}
-		visit.setVisitorNames(visitorNames);
-	}
-
 	private void cancel() {
 		Vector<Visit> visits = (storage.get().size() <= 10) ? storage.get()
 				: search();
@@ -256,9 +180,7 @@ public class Client {
 			System.out.println(v);
 	}
 
-	private void show() {
-		System.out.println(visit);
-	}
+
 
 	private void exit() {
 		char answer;
@@ -273,62 +195,185 @@ public class Client {
 		input.close();
 	}
 	
-	private void setUp(String methodName)
-	{
-		boolean ok = false;
+	// ==============================================
+	
+	private void book() {
+		boolean ok;
 		do {
+			ok = true;
 			try {
-				Class<?> paramTypes[] = new Class[1];
-				paramTypes[0] = Scanner.class;
-				Method method = this.getClass().getMethod(methodName, paramTypes);
-				method.invoke(this, input);
-				ok = true;
-			} catch (NoSuchMethodException e) {
+				askForNameDateNumber();
+				askForGuide();
+				askForReduction();
+				
+				storage.put(visit);
+				System.out.println("Your visit: ");
+				
+				show();
+				
+			} catch (StorageException e) {
 				System.out.println(e);
-			} catch (IllegalAccessException e) {
-			} catch(InvocationTargetException e) {
-				System.out.println(e);
-				System.out.println("Retry.");
-				ok = false;
 			}
 		} while (!ok);
 	}
 	
-	@SuppressWarnings("unused")
-	private void setDate() throws ClientException
-	{
-		System.out.println("Date dd/mm/yyyy:");
-		try {
-			Date date = Visit.dateFormat.parse(input.nextLine());
-			if (date.compareTo(new Date()) < 0)
-				visit.setDate(date);
-			else
-				throw new ClientException(
-						"You should choose the date in the future.");
-		} catch (ParseException e) {
-			throw new ClientException("Wrong data format! Should be dd/mm/yy.",
-					e);
+	private void askForGuide() {
+		char answer;
+		do {
+			System.out.println("Do you need a guide? Y/N:");
+			answer = input.next().charAt(0);
+			input.nextLine();
+			if (answer == 'Y') {
+				askForVisitors();
+				visit.setGuide();
+				if (!visit.hasGuide() && (visit.getVisitorNames().size() == 0)) {
+					System.out.println("You did not type visitors names, "
+							+ "guide can not be assigned to your visit");
+				}
+			}
+		} while (answer != 'Y' && answer != 'N');
+	}
+	
+	private void askForReduction() {
+		int visitorNumber = visit.getVisitorNumber();
+		if (visitorNumber > Visit.applyReductionTreshold) {
+			char answer;
+			do {
+				System.out.println("Number of visitors, "
+						+ visit.getVisitorNumber() + " more than "
+						+ Visit.applyReductionTreshold);
+				System.out.println("You have right for reduction. "
+						+ "Would you ask for it? Y/N:");
+				answer = input.next().charAt(0);
+				input.nextLine();
+				if (answer == 'Y') {
+					askForVisitors();
+					visit.setReduction();
+					if ((visit.getVisitorNumber() < Visit.applyReductionTreshold)
+							&& !visit.hasReduction()) {
+						System.out.println("Number of visitors, "
+								+ visit.getVisitorNumber() + " not more than "
+								+ Visit.applyReductionTreshold);
+						System.out.println("You have no right for reduction.");
+					}
+				}
+			} while (answer != 'Y' && answer != 'N');
 		}
 	}
 	
-	@SuppressWarnings("unused")
-	private void setName(Scanner input) throws ClientException {
-		System.out.println("Type name:");
-		try {
-			visit.setName(input.nextLine());
-		} catch (InputMismatchException e) {
-			throw new ClientException("Invalid name.", e);
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private void setVisitorNumber(Scanner input)
-			throws ClientException {
-				System.out.println("Type number of visitors:");
-			try {
-				visit.setVisitorNumber(input.nextInt());
-			} catch (InputMismatchException e) {
-				throw new ClientException("Invalid number of visitors.", e);
+	private void askForVisitors() {
+		int visitorNumber = visit.getVisitorNumber();
+		System.out.println("Type all " + visitorNumber + " visitor names:");
+		System.out.println("Type Exit to interrupt input berfore reaching "
+				+ visitorNumber + " names");
+		Vector<String> visitorNames = new Vector<String>();
+		;
+		for (int i = 0; i < visitorNumber; i++) {
+			if ("Exit" == input.nextLine()) {
+				visit.setVisitorNumber(visitorNames.size());
+				break;
+			} else {
+				visitorNames.add(input.nextLine());
 			}
 		}
+		visit.setVisitorNames(visitorNames);
+	}
+	
+	private void show() {
+		System.out.println(visit);
+	}
+	
+	private void askForNameDateNumber() 
+	{
+		setUp("setName");
+		setUp("setDate");
+		setUp("setVisitorNumber");		
+	}
+	
+	private void setUp(String methodName) {
+		boolean ok = false;
+		do {
+			try {
+				Method method = this.getClass().getMethod(methodName);
+				ok = (boolean) method.invoke(this);
+			} catch (NoSuchMethodException e) {
+				System.out.println(e);
+				ok = true;
+			} catch (IllegalAccessException e) {
+				System.out.println(e);
+				ok = true;
+			} catch (InvocationTargetException e) {
+				System.out.println(LABEL_RETRY);
+				ok = true;
+			}
+		} while (!ok);
+	}
+	
+	
+	private void retry(String message)
+	{
+		System.out.println(message);
+		System.out.println(LABEL_RETRY);
+	}
+	
+	public boolean setName() 
+	{
+		System.out.println(LABEL_NAME);
+		try {
+			String text = input.nextLine();
+			if (text.length() == 0) {
+				retry(ERROR_EMPTY_NAME);
+				return false;
+			}
+			visit.setName(text);
+		} catch (InputMismatchException e) {
+			retry(ERROR_INVALID_NAME);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean setDate()
+	{
+		System.out.println(LABEL_DATE);
+		try {
+			String text = input.nextLine();
+			if (text.length() == 0) {
+				retry(ERROR_EMPTY_DATE);
+			}
+			Date date = Visit.dateFormat.parse(text);
+			if (date.compareTo(new Date()) <= 0) {
+				retry(ERROR_DATE_IN_PAST);
+				return false;
+			}
+			visit.setDate(date);
+		} catch (ParseException e) {
+			retry(ERROR_INVALID_DATE);
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean setVisitorNumber() 
+	{
+		System.out.println(LABEL_VISITORS_NUMBER);
+		try {
+			String text = input.nextLine();
+			if (text.length() == 0) {
+				retry(ERROR_EMPTY_NUMBER);
+				return false;
+			}
+			int number = Integer.parseInt(text);
+			if (number <= 0) {
+				retry(ERROR_INVALID_NUMBER);
+				return false;
+			}
+			visit.setVisitorNumber(number);
+		} catch (NumberFormatException e) {
+			retry(ERROR_INVALID_NUMBER);
+			return false;
+		}	
+		return true;
+	}
 }

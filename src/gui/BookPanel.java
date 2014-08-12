@@ -52,6 +52,7 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String ERROR_EMPTY_DATE      = "Date can not be empty";
 	private static final String ERROR_DATE_IN_PAST    = "Choose a date in the future";
 	private static final String ERROR_INVALID_DATE    = "Invalid date";
+	private static final String ERROR_EMPTY_NUMBER    = "Visitors number can not be empty";
 	private static final String ERROR_INVALID_NUMBER  = "Invalid number";
 	private static final String ERROR_GUIDE           = "Tell if guide is needed";
 	private static final String ERROR_REDUCTION       = "Tell if you ask for reduction";
@@ -165,48 +166,50 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
     }
 
-	private void acceptName() 
-	{
+	private void acceptName() {
 		if (textField.getText().length() == 0) {
-			showError(ERROR_EMPTY_NAME);			
-		} else {
-			visit.setName(textField.getText());
-			showStatus(STATUS_NAME + " " + textField.getText());
-			textField.setText("");
-			textField.repaint();
-			showStep(steps[++step]);
+			showError(ERROR_EMPTY_NAME);
+			return;
 		}
+		visit.setName(textField.getText());
+		showStatus(STATUS_NAME + " " + textField.getText());
+		textField.setText("");
+		textField.repaint();
+		showStep(steps[++step]);
 	}
 	
-	private void acceptDate() 
-	{
+	private void acceptDate() {
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_DATE);
-		} else {
-			String text = textField.getText();
-			try {
-				Visit.dateFormat.setLenient(false);
-				Date date = Visit.dateFormat.parse(text);
-				if (date.compareTo(new Date()) > 0) {
-					visit.setDate(date);
-					showStatus(STATUS_DATE + " " + text);
-					textField.setText("");
-					textField.repaint();
-					showStep(steps[++step]);
-				} else {
-					showError(ERROR_DATE_IN_PAST);
-				}
-			} catch (ParseException e) {
-				showError(ERROR_INVALID_DATE);
+			return;
+		}
+		String text = textField.getText();
+		try {
+			Visit.dateFormat.setLenient(false);
+			Date date = Visit.dateFormat.parse(text);
+			if (date.compareTo(new Date()) > 0) {
+				visit.setDate(date);
+				showStatus(STATUS_DATE + " " + text);
+				textField.setText("");
+				textField.repaint();
+				showStep(steps[++step]);
+			} else {
+				showError(ERROR_DATE_IN_PAST);
 			}
+		} catch (ParseException e) {
+			showError(ERROR_INVALID_DATE);
 		}
 	}
 	
 	private void acceptNumber()
 	{
+		if (textField.getText().length() == 0) {
+			showError(ERROR_EMPTY_NUMBER);
+			return;
+		}
 		try {
 			int number = Integer.parseInt(textField.getText());
-			if (number == 0) {
+			if (number <= 0) {
 				showError(ERROR_INVALID_NUMBER);
 				return;
 			}
