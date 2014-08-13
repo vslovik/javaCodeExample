@@ -38,10 +38,10 @@ public class Client {
 	private static final String LABEL_REDUCTION_QUESTION = "Would you ask for reduction? Y/N:";
 	
 	private static final String LABEL_VISITORS        = "Type all visitor names: ";
-	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input berfore typing all visitors names names";
+	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input before typing all names";
 	private static final String LABEL_NO_VISITS       = "No visits booked";
-	private static final String LABEL_NO_VISITS_FOUND   = "No visits found";
-	private static final String LABEL_YOUR_VISIT      = "Your visit";
+	private static final String LABEL_NO_VISITS_FOUND = "No visits found";
+	private static final String LABEL_YOUR_VISIT      = "Your visit: ";
 	private static final String LABEL_SAVE            = "Do you want to save changes? Y/N: ";
 	private static final String LABEL_CHANGES_SAVED   = "Changes saved";
 	private static final String LABEL_CANCEL_SUCCESS  = "You've just canceled the visit (Not saved yet): ";
@@ -49,6 +49,13 @@ public class Client {
 	private static final String LABEL_VISITS_NUMBER   = "Number of visits found: ";
 	private static final String LABEL_CANCEL          = "Choose visit to cancel: ";
 	private static final String LABEL_CANCEL_THIS     = "Cancel this visit?";
+	
+	private static final String VISIT_DATE            = "Date: ";
+	private static final String VISIT_NAME            = "Name: ";
+	private static final String VISIT_VISITORS_NUMBER = "Visitors number: ";
+	private static final String VISIT_GUIDE           = "Guide: ";
+	private static final String VISIT_PRICE           = "Price: ";
+	private static final String VISIT_VISITORS        = "Visitors names: ";
 	
 	private static final String ERROR_EMPTY_NAME      = "Name can not be empty";
 	private static final String ERROR_INVALID_NAME    = "Invalid name";
@@ -66,6 +73,7 @@ public class Client {
 	private Vector<Visit> visits;
 	private Scanner input;
 	private Storage storage;
+	private boolean changed = false; 
 	
 	public static void main(String[] args) {
 		Client client  = new Client();
@@ -108,7 +116,7 @@ public class Client {
 				break;
 			case 'F':
 				search();
-				list();
+				listMore();
 				break;
 			case 'S':
 				save();
@@ -121,15 +129,17 @@ public class Client {
 	}
 	
 	private void exit() {
-		char answer;
-		do {
-			System.out.println(LABEL_SAVE);
-			answer = input.next().charAt(0);
-			input.nextLine();
-			if (answer == 'Y') {
-				save();
-			}
-		} while (answer != 'Y' && answer != 'N');
+		if(changed) {
+			char answer;
+			do {
+				System.out.println(LABEL_SAVE);
+				answer = input.next().charAt(0);
+				input.nextLine();
+				if (answer == 'Y') {
+					save();
+				}
+			} while (answer != 'Y' && answer != 'N');
+		}
 		input.close();
 	}
 	
@@ -239,7 +249,7 @@ public class Client {
 	
 	private void find(Date date)
 	{
-		visits = storage.get(visit.getName());
+		visits = storage.get(visit.getDate());
 	}
 	
 	private void save()
@@ -254,6 +264,7 @@ public class Client {
 	private void delete(){
 		try {
 			storage.delete(visit);
+			changed = true;
 			System.out.println(LABEL_CANCEL_SUCCESS);
 			System.out.println(visit);
 		} catch (StorageException e) {
@@ -291,10 +302,38 @@ public class Client {
 			}
 		}
 	}
-
+	
+	private void listMore() {
+		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
+		System.out.println(String.format(LABEL_LAST_VISITS));
+		int i = 0;
+		if (visits.size() == 0)
+			System.out.println(LABEL_NO_VISITS);
+		for (Visit v : visits) {
+			System.out.println(v);
+			if(v.hasGuide()) {
+				System.out.println(String.format("%40s", VISIT_VISITORS));
+				for(String name : v.getVisitorNames())
+					System.out.println(String.format("%38s", name));
+				System.out.println();
+			}
+			if(++i == MAX_VISITS_TO_DISPLAY){
+				break;
+			}
+		}
+	}
+	
 	private void show() {
 		System.out.println(LABEL_YOUR_VISIT);
-		System.out.println(visit);
+		System.out.println(String.format("%-20s", VISIT_DATE) + Visit.dateFormat.format(visit.getDate()));
+		System.out.println(String.format("%-20s", VISIT_NAME) + visit.getName());
+		System.out.println(String.format("%-20s", VISIT_VISITORS_NUMBER) + Integer.toString(visit.getVisitorNumber()));
+		System.out.println(String.format("%-20s", VISIT_GUIDE) + (visit.hasGuide() ? "guide" : ""));
+		System.out.println(String.format("%-20s", VISIT_PRICE) + visit.getPrice() + " euro" + (visit.hasReduction() ? " reduction " : ""));
+		System.out.println(VISIT_VISITORS);
+		for(String name : visit.getVisitorNames()) {
+			System.out.println("  " + name);
+		}
 	}
 	
 	//=======================================//
@@ -304,6 +343,7 @@ public class Client {
 		askForData();
 		try {
 			storage.put(visit);	
+			changed = true;
 			show();
 		} catch (StorageException e) {
 			System.out.println(ERROR_SYSTEM);
@@ -373,11 +413,12 @@ public class Client {
 	}
 		
 	private void askForVisitors() {
+		Vector<String> visitorNames = new Vector<String>();
 		System.out.println(LABEL_VISITORS);
 		System.out.println(LABEL_VISITORS_EXIT);
-		String text = input.nextLine();
-		Vector<String> visitorNames = new Vector<String>();
 		for (int i = 0; i < visit.getVisitorNumber(); i++) {
+			System.out.println(Integer.toString(i+1) + ": ");
+			String text = input.nextLine();
 			if ("Exit" == text) {
 				visit.setVisitorNumber(visitorNames.size());
 				break;
