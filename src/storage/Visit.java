@@ -2,9 +2,7 @@ package storage;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.InputMismatchException;
 import java.util.Vector;
-import java.util.Scanner;
 
 public class Visit implements Serializable {
 
