@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -116,6 +117,22 @@ public class Storage {
 			return result;
 		Collection<Visit> values = map.values();
 		result.addAll(values);
+		return result;
+	}
+	
+	public Vector<Visit> last(int count)
+	{
+		Vector<Visit> result = new Vector<Visit>();
+		if(map.size() == 0)
+			return result;
+	    Iterator<String> id = map.descendingKeySet().iterator(); 
+	    int i = 0;
+	    while (id.hasNext()) {
+	        result.add(map.get(id.next()));
+			if(++i == count){
+				break;
+			}
+	    } 
 		return result;
 	}
 	

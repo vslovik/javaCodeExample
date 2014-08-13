@@ -14,7 +14,7 @@ import storage.Visit;
 
 public class Client {
 
-	private static final int MAX_VISITS_TO_DISPLAY = 10;
+	private static final int MAX_VISITS_TO_DISPLAY = 20;
 	
 	private static final String MENU_LIST   = "[L]ist visits";
 	private static final String MENU_BOOK   = "[B]ook visit";
@@ -24,6 +24,7 @@ public class Client {
 	private static final String MENU_EXIT   = "[E]xit";
 	private static final String MENU_CHOOSE = "Choose: ";
 	
+	private static final String MENU_SHOW_LAST        = "Show      [L]ast visits";
 	private static final String MENU_SEARCH_BY_NAME   = "Search by [N]ame";
 	private static final String MENU_SEARCH_BY_DATE   = "Search by [D]ate";
 	
@@ -39,6 +40,7 @@ public class Client {
 	private static final String LABEL_VISITORS        = "Type all visitor names: ";
 	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input berfore typing all visitors names names";
 	private static final String LABEL_NO_VISITS       = "No visits booked";
+	private static final String LABEL_NO_VISITS_FOUND   = "No visits found";
 	private static final String LABEL_YOUR_VISIT      = "Your visit";
 	private static final String LABEL_SAVE            = "Do you want to save changes? Y/N: ";
 	private static final String LABEL_CHANGES_SAVED   = "Changes saved";
@@ -136,30 +138,35 @@ public class Client {
 		char choice;
 		do {
 			System.out.println();
+			System.out.println(MENU_SHOW_LAST);
 			System.out.println(MENU_SEARCH_BY_NAME);
 			System.out.println(MENU_SEARCH_BY_DATE);
 			System.out.println();
 			System.out.print(MENU_CHOOSE);
 			choice = input.next().charAt(0);
 			input.nextLine();
-			if (choice == 'N') {
-				setName();
+			if (choice == 'L') {
+				find();
+			} 
+			else if (choice == 'N') {
+				askForName();
 				find(visit.getName());
-			} else {
-				setDate();
+			} 
+			else if (choice == 'D') {
+				askForDate();
 				find(visit.getDate());
-			}
-		} while (choice != 'N' && choice != 'D');
+			} 
+
+		} while (choice != 'L' && choice != 'N' && choice != 'D');
 	}
 
 	private void cancel() {
 		visit = new Visit();
-		if(count() < 10) {
-			find();
-		} else {
-			search();
+		search();
+		if(visits.size() == 0) {
+			System.out.println(LABEL_NO_VISITS_FOUND);
+			return;
 		}
-		
 		if (visits.size() == 1) {
 			visit = visits.get(0);
 			confirmToCancel();
@@ -176,7 +183,6 @@ public class Client {
 			answer = input.next().charAt(0);
 			input.nextLine();
 			if (answer == 'Y') {
-				visit = visits.get(0);
 				delete();
 			}
 		} while (answer != 'Y' && answer != 'N');
@@ -188,6 +194,7 @@ public class Client {
 		do {
 			ok = true;
 			askWhatVisitToCancel(); 
+			visit = visits.get(0);
 			delete();
 		} while (!ok);
 	}
@@ -202,8 +209,8 @@ public class Client {
 				retry(ERROR_CANCEL);
 				return false;
 			}
-			int index = Integer.parseInt(text);
-			if (index <= 0) {
+			int index = Integer.parseInt(text) - 1;
+			if (index < 0) {
 				retry(ERROR_CANCEL);
 				return false;
 			}
@@ -220,14 +227,9 @@ public class Client {
 	
 	// ============= storage operations =====================//
 	
-	private int count()
-	{
-		return storage.size();
-	}
-	
 	private void find()
 	{
-		visits = storage.get();
+		visits = storage.last(MAX_VISITS_TO_DISPLAY);
 	}
 	
 	private void find(String name)
@@ -267,7 +269,7 @@ public class Client {
 		int i = 0;
 		for (Visit v : visits) {
 			System.out.println(
-					"[" + visits.indexOf(v) + "]"
+					"[" + String.format("%2s", Integer.toString(visits.indexOf(v) + 1)) + "]"
 					+ " " + v.toString()
 					);
 			if(++i == MAX_VISITS_TO_DISPLAY){
@@ -309,12 +311,26 @@ public class Client {
 	}
 	
 	private void askForData() {
-		boolean ok;
+		boolean ok = false;
 		do {
 			ok = true;
 			askForNameDateNumber();
 			askForGuide();
 			askForReduction();
+		} while (!ok);
+	}
+	
+	private void askForDate() {
+		boolean ok = false;
+		do {
+			ok = setDate();
+		} while (!ok);
+	}
+	
+	private void askForName() {
+		boolean ok = false;
+		do {
+			ok = setName();
 		} while (!ok);
 	}
 
