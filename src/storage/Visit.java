@@ -13,7 +13,7 @@ public class Visit implements Serializable {
 	public static final int guidePrice = 50;
 	public static final int visitPriceReduced = 3;
 	public static final int guidePriceReduced = 40;
-	public static final int applyReductionTreshold = 10;
+	public static final int applyReductionTreshold = 11;
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	public static final SimpleDateFormat sortDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	
