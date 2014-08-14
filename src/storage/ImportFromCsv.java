@@ -9,16 +9,53 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Vector;
 
+/** 
+ * The {@code ImportFromCsv} class is created
+ * to import visits data from .csv file
+ * 
+ * @author  Valeriya Slovikovskaya
+*/
 public class ImportFromCsv {
 
+	/**
+	 * Input file name
+	 */
 	final static String FILE_INPUT = "data.csv";	
+	
+	/**
+	 * Field delimiter for .csv file
+	 */
 	final static String FIELDS_DELIMITER   = ";";
+	
+	/**
+	 * Visitors list delimiter
+	 */
 	final static String VISITORS_DELIMITER = ",";	
+	
+	/**
+	 * Input file encoding
+	 */
 	final static Charset ENC = StandardCharsets.UTF_8;
 	
+	/**
+	 * {@link List<String>} of input file lines
+	 */
 	private List<String> lines;
+	
+	/**
+	 * {@link Storage} instance
+	 */
 	private Storage storage;
 	
+	/**
+	 * Class constructor
+	 * Initializes {@link Storage}
+	 * Reads input file, process it line by line
+	 * Saves data in the {@link Storage}
+	 * 
+	 * @see #createVisit(String)
+	 * @see #writeVisit(Visit)
+	 */
 	public ImportFromCsv() {
 		storage = new Storage();
 		String path = System.getProperty("user.dir");
@@ -36,6 +73,11 @@ public class ImportFromCsv {
 		System.out.println("done");
 	}
 	
+	/**
+	 * Process input line
+	 * 
+	 * @param line Line (one visit's representation)
+	 */
 	private void process(String line){
 		try {
 			storage.put(createVisit(line));
@@ -44,6 +86,12 @@ public class ImportFromCsv {
 		}
 	}
 	
+	/**
+	 * Creates Visit instance in base of parsed input line
+	 * 
+	 * @param line Input line
+	 * @return created visit
+	 */
 	private Visit createVisit(String line)
 	{
 		Visit visit = new Visit();
@@ -77,6 +125,10 @@ public class ImportFromCsv {
 		return visit;
 	}
 	
+	/**
+	 * Main method: creates class instance
+	 * @param args
+	 */
 	public static void main(String[] args) throws IOException {	
 		new ImportFromCsv();
 	}

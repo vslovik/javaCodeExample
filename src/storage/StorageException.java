@@ -1,6 +1,6 @@
 package storage;
 /**
- * Signals that an Client exception of some sort has occurred. 
+ * Signals that an {@link Storage} exception of some sort has occurred
  */
 public
 class StorageException extends Exception {

@@ -28,7 +28,6 @@ import storage.Visit;
  * 
  * @author  Valeriya Slovikovskaya
 */
-
 public class Client {
 
 	/**
@@ -100,12 +99,12 @@ public class Client {
 	private Visit visit;
 	
 	/**
-	 * Collection of visits retrieved from the storage
+	 * {@link Vector}of visits retrieved from the storage
 	 */
 	private Vector<Visit> visits;
 	
 	/**
-	 *  Text scanner instance to read and parse user input
+	 *  Text {@link Scanner} instance to read and parse user input
 	 */
 	private Scanner input;
 	
@@ -209,10 +208,10 @@ public class Client {
 	
 	/**
 	 * Storage lookup with options
-	 * to display last {@code MAX_VISITS_TO_DISPLAY} visits 
+	 * to display last {@link #MAX_VISITS_TO_DISPLAY} visits 
 	 * or search visits by name and date
 	 * 
-	 * In any case no more than {@code MAX_VISITS_TO_DISPLAY}
+	 * In any case no more than {@link #MAX_VISITS_TO_DISPLAY}
 	 * displayed for usability sake
 	 */
 	private void search() {
@@ -240,6 +239,26 @@ public class Client {
 			} 
 
 		} while (choice != 'L' && choice != 'N' && choice != 'D');
+	}
+	
+	/**
+	 * Reads date from input to search visits by date
+	 */
+	private void askForDate() {
+		boolean ok = false;
+		do {
+			ok = setDate();
+		} while (!ok);
+	}
+	
+	/**
+	 * Reads date from input to search visits by name
+	 */
+	private void askForName() {
+		boolean ok = false;
+		do {
+			ok = setName();
+		} while (!ok);
 	}
 
 	/**
@@ -333,7 +352,7 @@ public class Client {
 	 */
 	
 	/**
-	 * Retrieves last {@code MAX_VISITS_TO_DISPLAY}
+	 * Retrieves last {@link #MAX_VISITS_TO_DISPLAY}
 	 * from the storage
 	 */
 	private void find()
@@ -393,7 +412,7 @@ public class Client {
 	 */
 
 	/**
-	 * Enumerates {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Enumerates {@link #MAX_VISITS_TO_DISPLAY} from the collection of visits found
 	 * Shows ordered list
 	 * 
 	 * Visits are sorted by date in descending order
@@ -415,7 +434,7 @@ public class Client {
 	}
 
 	/**
-	 * Lists {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Lists {@link #MAX_VISITS_TO_DISPLAY} from the collection of visits found
 	 * Shows unordered list
 	 * 
 	 * Visits are sorted by date in descending order
@@ -436,7 +455,7 @@ public class Client {
 	}
 	
 	/**
-	 * Lists {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Lists {@link #MAX_VISITS_TO_DISPLAY} from the collection of visits found
 	 * Shows unordered list
 	 * 
 	 * Visits are sorted by date in descending order
@@ -478,7 +497,10 @@ public class Client {
 		}
 	}
 	
-	
+	/**
+	 * Books visit: reads user input, validate it,
+	 * puts it into storage and displays visits info
+	 */
 	private void book() {
 		visit = new Visit();
 		askForData();
@@ -491,6 +513,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Asks user for visit's data,
+	 * reads and validates it
+	 */
 	private void askForData() {
 		boolean ok = false;
 		do {
@@ -501,20 +527,9 @@ public class Client {
 		} while (!ok);
 	}
 	
-	private void askForDate() {
-		boolean ok = false;
-		do {
-			ok = setDate();
-		} while (!ok);
-	}
-	
-	private void askForName() {
-		boolean ok = false;
-		do {
-			ok = setName();
-		} while (!ok);
-	}
-
+	/**
+	 * Reads if guide is needed from input
+	 */
 	private void askForGuide() {
 		char answer;
 		do {
@@ -532,6 +547,9 @@ public class Client {
 		} while (answer != 'Y' && answer != 'N');
 	}
 	
+	/**
+	 * Reads if reduction is requested from input
+	 */
 	private void askForReduction() {
 		int visitorNumber = visit.getVisitorNumber();
 		if (visitorNumber > Visit.applyReductionTreshold) {
@@ -552,7 +570,10 @@ public class Client {
 			} while (answer != 'Y' && answer != 'N');
 		}
 	}
-		
+	
+	/**
+	 * Reads visitors names from input
+	 */
 	private void askForVisitors() {
 		Vector<String> visitorNames = new Vector<String>();
 		System.out.println(LABEL_VISITORS);
@@ -570,6 +591,10 @@ public class Client {
 		visit.setVisitorNames(visitorNames);
 	}
 	
+	/**
+	 * Reads visit's name, date and visitors 
+	 * number from user input
+	 */
 	private void askForNameDateNumber() 
 	{
 		setUp("setName");
@@ -577,6 +602,12 @@ public class Client {
 		setUp("setVisitorNumber");		
 	}
 	
+	/**
+	 * This method is reused to set name, date, 
+	 * visitors number of the visit to book
+	 * 
+	 * @param methodName
+	 */
 	private void setUp(String methodName) {
 		boolean ok = false;
 		do {
@@ -596,12 +627,24 @@ public class Client {
 		} while (!ok);
 	}
 	
-	private void retry(String message)
+	/**
+	 * Displays error and asks for new attempt 
+	 * 
+	 * @param message
+	 */
+	private void retry(String error)
 	{
-		System.out.println(message);
+		System.out.println(error);
 		System.out.println(LABEL_RETRY);
 	}
 	
+	/**
+	 * Sets new visit's name
+	 * 
+	 * @see #askForNameDateNumber()
+	 * @see #setUp(String)
+	 * @return
+	 */
 	public boolean setName() 
 	{
 		System.out.println(LABEL_NAME);
@@ -619,7 +662,13 @@ public class Client {
 		return true;
 	}
 	
-	
+	/**
+	 * Sets new visit's date
+	 * 
+	 * @see #askForNameDateNumber()
+	 * @see #setUp(String)
+	 * @return
+	 */
 	public boolean setDate()
 	{
 		System.out.println(LABEL_DATE);
@@ -642,6 +691,13 @@ public class Client {
 		return true;
 	}
 	
+	/**
+	 * Assigns visitors number to new visit
+	 * 
+	 * @see #askForNameDateNumber()
+	 * @see #setUp()
+	 * @return
+	 */
 	public boolean setVisitorNumber() 
 	{
 		System.out.println(LABEL_VISITORS_NUMBER);

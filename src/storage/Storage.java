@@ -13,20 +13,53 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
-
+/** 
+ * The {@code Storage} class provides put, get, delete methods
+ * to access stored data. It uses {@link TreeMap} java library 
+ * class that implements Red-Black balanced Tree
+ * to effectively scale storage minimizing lookup cost
+ * 
+ * Two {@link TreeMap} are instantiated as class variables:
+ * {@link #map} to keep visits sorted by date, and
+ * {@link #index} to reorder visits by name
+ * 
+ * @author Valeriya Slovikovskaya
+*/
 public class Storage {
 	
+	/**
+	 * Names of storage files
+	 */
 	public final static String RESOURCE_VISITS = "visits";
 	public final static String RESOURCE_INDEX  = "index";
 	
+	/**
+	 * Date-key to {@link Visit} map
+	 */
 	private TreeMap<String, Visit> map;
+	
+	/**
+	 * Name-key to date-key map
+	 */
 	private TreeMap<String, String> index;
 	
+	/**
+	 * Class constructor
+	 * Loads storage from files
+	 * 
+	 * @see #read()
+	 * 
+	 */
 	public Storage() {	
 		read(RESOURCE_VISITS);
 		read(RESOURCE_INDEX);
 	}
 	
+	/**
+	 * Loads storage from file
+	 * 
+	 * @param resourceName File name
+	 */
 	@SuppressWarnings("unchecked")
 	private void read(String resourceName)
 	{
@@ -61,6 +94,15 @@ public class Storage {
 		}
 	}
 	
+	/**
+	 * Creates empty storage instances
+	 * in case storage files are unreadable
+	 * 
+	 * If only index file lost, 
+	 * restore it, re-indexing map storage
+	 * 
+	 * @param resourceName
+	 */
 	private void init(String resourceName) 
 	{
 		switch(resourceName){
@@ -82,11 +124,19 @@ public class Storage {
 		}
 	}
 	
+	/**
+	 * Gets storage size
+	 * 
+	 * @return 
+	 */
 	public int size()
 	{
 		return map.size();
 	}
 	
+	/**
+	 * Re-indexes {@link #map} to restore {@link #index}
+	 */
 	public void reindex()
 	{
 		for(Visit visit : map.values()) {
@@ -94,6 +144,12 @@ public class Storage {
 		}
 	}
 	
+	/**
+	 * Puts visit into storage
+	 * 
+	 * @param visit
+	 * @throws StorageException
+	 */
 	public void put(Visit visit) throws StorageException
 	{
 		if(!visit.validate())
@@ -102,6 +158,12 @@ public class Storage {
 		index.put(visit.getNameKey(), visit.getDateKey());
 	}
 	
+	/**
+	 * Removes visit
+	 * 
+	 * @param visit
+	 * @throws StorageException
+	 */
 	public void delete(Visit visit) throws StorageException
 	{
 		if(!visit.validate())
@@ -110,6 +172,11 @@ public class Storage {
 		index.remove(visit.getNameKey());
 	}
 	
+	/**
+	 * Retrieves all visits from storage
+	 * 
+	 * @return
+	 */
 	public Vector<Visit> get()
 	{
 		Vector<Visit> result = new Vector<Visit>();
@@ -120,6 +187,12 @@ public class Storage {
 		return result;
 	}
 	
+	/**
+	 * Gets last {@code count} visits from storage 
+	 * 
+	 * @param count
+	 * @return
+	 */
 	public Vector<Visit> last(int count)
 	{
 		Vector<Visit> result = new Vector<Visit>();
@@ -136,6 +209,12 @@ public class Storage {
 		return result;
 	}
 	
+	/**
+	 * Searches visits by name
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public Vector<Visit> get(String name)
 	{
 		Vector<Visit> result = new Vector<Visit>();
@@ -153,6 +232,12 @@ public class Storage {
 		return result;
 	}
 	
+	/**
+	 * Searches visits by date
+	 * 
+	 * @param date
+	 * @return
+	 */
 	public Vector<Visit> get(Date date)
 	{
 		Vector<Visit> result = new Vector<Visit>();
@@ -170,10 +255,21 @@ public class Storage {
 		return result;
 	}
 	
+	/** 
+	 * Rewrites storage files
+	 * 
+	 * @return
+	 */
 	public boolean save() {
 		return save(RESOURCE_VISITS) && save(RESOURCE_INDEX);
 	}
 	
+	/**
+	 * Rewrites one of storage files
+	 * 
+	 * @param resourceName
+	 * @return
+	 */
 	public boolean save(String resourceName)
 	{
 		ObjectOutputStream stream = null;

@@ -32,11 +32,32 @@ import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
 
+/** 
+ * The {@code LookPanel} provides GUI to search and cancel visits.
+ * 
+ * Extends {@link JPanel}, instantiates inputs fields and button
+ * like class variables to access from any method,
+ * implements  {@link ActionListener} and {@link KeyListener}
+ * interfaces to attach listeners to fields and button and 
+ * process related events.
+ * 
+ * All language related information is grouped in 
+ * language constants sets that might ease localization 
+ * of the program. 
+ * 
+ * @author  Valeriya Slovikovskaya
+*/
 public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	
 	private static final long serialVersionUID = -7521824039604344258L;
 	
-	// Field labels: five steps
+	/** 
+	 * Language related constants
+	 */
+	
+	/**
+	 * Text field labels for booking steps
+	 */
 	private static final String LABEL_CHOOSE   = "Choose"; 
 	private static final String LABEL_NAME     = "Name"; 
 	private static final String LABEL_DATE     = "Date (dd/mm/YYYY)"; 
@@ -52,9 +73,15 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String LABEL_CANCEL   = "cancel";
 	private static final String LABEL_LIST     = "list";
 	
+	/**
+	 * Status messages
+	 */
 	private static final String STATUS_SUCCESS   = "Success!";
 	private static final String STATUS_NO_VISITS = "No visits found";
 	
+	/**
+	 * Error messages
+	 */
 	private static final String ERROR_CHOOSE     = "Choose one option";
 	private static final String ERROR_NAME       = "Name can not be empty";
 	private static final String ERROR_EMPTY_DATE = "Date can not be empty";
@@ -62,49 +89,82 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String ERROR_SYSTEM     = "System error";
 	private static final String ERROR_VISITORS   = "Visitors list available only for guided visits";
 	
+	/**
+	 * Extra window width to display list control
+	 */
     final static int extraWindowWidth = 320;
 	
-    // Reusable GUI elements:
+    /**
+     * Reusable GUI elements:
+     */
     
-	// Error label
+	/**
+	 *  Error label {@link JLabel}
+	 */
 	private JLabel errorLabel;
 	
-	// Status label
+	/**
+	 *  Status label {@link JLabel}
+	 */
 	private JLabel statusLabel;
 	
-	// Label
+	/**
+	 *  Text field label {@link JLabel}
+	 */
 	private JLabel label;
 	
-	// Search/Show all radio buttons
+	/**
+	 *  Search/Show all radio buttons 
+	 *  {@link JRadioButton}
+	 */
     private JRadioButton chooseSearchRadio;
     private JRadioButton chooseShowRadio;
     
-	// Search by Name/Date radio buttons
+	/**
+	 *  Search by Name/Date radio buttons
+	 *  {@link JRadioButton}
+	 */
     private JRadioButton searchByNameRadio;
     private JRadioButton searchByDateRadio;
 	  
-	// Text field
+	/**
+	 *  Text field {@link TextField}
+	 */
 	private TextField textField;
     
-    // Next button
+    /**
+     *  Next-step button
+     */
 	private JButton nextButton;
 	
-	// Cancel button
+	/**
+	 *  Cancel button {@link JButton}
+	 */
 	private JButton cancelButton;
 	
-	// Visitors button
+	/**
+	 *  Visitors button to show visitors list for guided visits 
+	 */
 	private JButton visitorsButton;
 	
-    // Storage
+    /**
+     *  {@link Storage} instance
+     */
     private Storage storage;
     
-    // Visits
+    /**
+     * {@link Vector} collection of found visits
+     */
     private Vector<Visit> visits;
     
-    // Visitor list pane
+    /**
+     *  Visitor list pane {@link JPanel}
+     */
     private JPanel listPane;
     
-    // List of visits to show 
+    /**
+     *  List control elements
+     */
     private JList<Visit> list;
     private JList<String> visitorsList;
 	private DefaultListModel<Visit> visitsModel;
@@ -114,9 +174,11 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	private JPanel buttonPane;
 	private JLabel buttonsLabel;
 	
-	//Make the panel wider than it really needs, so
-    //the window's wide enough for the tabs to stay
-    //in one row.
+	/**
+	 * Makes the panel wider than it really needs, 
+	 * so the window's wide enough
+	 * for the tabs to stay in one row.
+	 */
     public Dimension getPreferredSize() 
     {
         Dimension size = super.getPreferredSize();     
@@ -133,7 +195,18 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		showStep("CHOICE");
 	}
 	
-    // Listeners interface methods
+    /**
+     *  Listeners interface methods
+     */
+	
+	/**
+	 * Action performed
+	 * 
+	 * Reads and executes command in response 
+	 * on {@link ActionEvent}
+	 * 
+	 * @see #execute(String)
+	 */
 	public void actionPerformed(ActionEvent e) 
 	{
 		if(e.getSource() == textField) {
@@ -143,6 +216,12 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}		
 	}	
 	
+	/**
+	 * Key pressed
+	 * 
+	 * Reads and executes command in response 
+	 * on {@link KeyEvent}
+	 */
     public void keyPressed(KeyEvent e) 
     {
         if (e.getKeyCode() == KeyEvent.VK_ENTER){
@@ -153,6 +232,18 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
     public void keyReleased(KeyEvent arg0) {}
     public void keyTyped(KeyEvent arg0) {}
 	
+    /**
+     * Executes event actions fired by 
+     * user interaction with GUI
+     * 
+     * @see #acceptChoice()
+     * @see #acceptSearchOption()
+     * @see #acceptName()
+     * @see #acceptDate()
+     * @see #showVisitors()
+     * 
+     * @param action
+     */
 	public void execute(String command)
 	{
 		errorLabel.setVisible(false);
@@ -193,6 +284,10 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes user choice: search for visits or 
+	 * just list them - from input
+	 */
 	private void acceptChoice()
 	{
 		if (chooseSearchRadio.isSelected()) {
@@ -207,6 +302,11 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Reads chosen search option: 
+	 * search by name or date
+	 * from the input
+	 */
 	private void acceptSearchOption()
 	{
 		if (searchByNameRadio.isSelected()) {
@@ -220,6 +320,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes visit's name from input
+	 */
 	private void acceptName() 
 	{
 		if (textField.getText().length() == 0) {
@@ -232,6 +335,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes visit's date from input
+	 */
 	private void acceptDate() 
 	{
 		if (textField.getText().length() == 0) {
@@ -250,6 +356,11 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes visit's index from the input,
+	 * removes visit from the visits list {@link #visitsModel}
+	 * and from the {@link Storage}
+	 */
 	private void cancelVisit()
 	{
 		int index = list.getSelectedIndex();
@@ -266,6 +377,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	    nextButton.setActionCommand("SAVE");
 	}
 	
+	/**
+	 * Displays visitors names for guided visit
+	 */
 	private void showVisitors()
 	{
 		visitorsModel.removeAllElements();
@@ -296,6 +410,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	    nextButton.setActionCommand("BACK");
 	}
 	
+	/**
+	 * Navigates from visitors list to visits list
+	 */
 	private void backToVisits()
 	{
 		buttonsLabel.setVisible(true);
@@ -306,6 +423,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	    nextButton.setActionCommand("NEW");
 	}
 		
+	/**
+	 * Displays visits found
+	 */
 	private void showVisits() 
 	{
 		if (visits.size() == 0) {
@@ -323,6 +443,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
         listPane.setVisible(true);
 	}
 	
+	/**
+	 * Save changes in the {@link Storage}
+	 */
 	private void saveVisits()
 	{
 		if(!storage.save()) {
@@ -334,12 +457,22 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	    nextButton.setActionCommand("NEW");
 	}
 
+	/**
+	 * Shows error message
+	 * 
+	 * @param message Error message
+	 */
 	private void showError(String message)
 	{
 		errorLabel.setText(message);
 		errorLabel.setVisible(true);
 	}
 	
+	/**
+	 * Shows success message
+	 * 
+	 * @param message Success message
+	 */
 	private void showSuccess(String message)
 	{
 		statusLabel.setText(message);
@@ -347,9 +480,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 	}
 	
 	/**
-	 * Show current step
+	 * Shows current step view
 	 * 
-	 * @param step
+	 * @param step Step name
 	 */
 	private void showStep(String step)
 	{
@@ -409,6 +542,24 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 
+	/**
+	 * Creates GUI layout,
+	 * that consists of three parts:
+	 * Error, Input and Next-button Panels
+	 * 
+	 * Error panel shows error messages
+	 * Input panel contains text field and radio buttons
+	 * to input data, and List control to display and 
+	 * manage visits.
+	 * 
+	 * Next-button panel contains the Next-button 
+	 * to fire next step action event
+	 *
+	 * @see #initErrorPanel()
+	 * @see #initListPanel()
+	 * @see #initInputPanel()
+	 * @see #initNextButtonPanel()
+	 */
 	private void makeLayout()
 	{
 		this.setLayout(new BorderLayout());		
@@ -416,7 +567,7 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		// North panel
 		initErrorPanel();
 		
-		// List panel
+		// List panel (belongs to Center panel)
 		initListPanel();
 		
 		// Center panel
@@ -426,6 +577,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		initNextButtonPanel();
 	}
 	
+	/**
+	 * Initiates List panel 
+	 */
 	private void initListPanel() 
 	{
 		listPane = new JPanel();
@@ -439,6 +593,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		addButtonForListsManagement();
 	}
 	
+	/**
+	 * Places visitors list into scroll pane {@link JScrollPane}
+	 */
 	private void addScrollersToListPane()
 	{
 		list = new JList<Visit>();
@@ -463,6 +620,11 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		listPane.add(visitorsScroller);
 	}
 	
+	/**
+	 * Adds "cancel" and "list" buttons to {@link #listPane}
+	 * to cancel selected visits and 
+	 * to list visitors of selected guided visit  
+	 */
 	private void addButtonForListsManagement()
 	{
 		buttonPane = new JPanel();
@@ -484,6 +646,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		listPane.add(buttonPane);
 	}
 	
+	/**
+	 * Initiates Error panel elements
+	 */
 	private void initErrorPanel()
 	{
 	    JPanel northPnl  = new JPanel();
@@ -503,6 +668,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		add(northPnl, BorderLayout.NORTH);
 	}
 	
+	/**
+	 * Initiates Input panel elements
+	 */
 	private void initInputPanel()
 	{
 		label = new JLabel();
@@ -542,6 +710,9 @@ public class LookPanel extends JPanel implements ActionListener, KeyListener {
 		centerPnl.setBorder(new EmptyBorder(10, 10, 10, 10));	
 	}	
 	
+	/**
+	 * Initiates Next-button-panel elements
+	 */
 	private void initNextButtonPanel()
 	{
 		nextButton = new JButton(LABEL_NEXT);

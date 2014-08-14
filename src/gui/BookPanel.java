@@ -27,14 +27,32 @@ import javax.swing.border.EmptyBorder;
 import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
-
+/** 
+ * The {@code BookPanel} provides GUI to book visit.
+ * 
+ * Extends {@link JPanel}, instantiates inputs fields and button
+ * like class variables to access from any method,
+ * implements  {@link ActionListener} and {@link KeyListener}
+ * interfaces to attach listeners to fields and button and 
+ * process related events.
+ * 
+ * All language related information is grouped in 
+ * language constants sets that might ease localization 
+ * of the program. 
+ * 
+ * @author  Valeriya Slovikovskaya
+*/
 public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	
 	private static final long serialVersionUID = 3824198048480501335L;
 	
-	// Language related constant
+	/** 
+	 * Language related constants
+	 */
 	
-	// Field labels for booking steps
+	/**
+	 * Text field labels for booking steps
+	 */
 	private static final String LABEL_NAME      = "Name"; 
 	private static final String LABEL_DATE      = "Date (dd/mm/YYYY)"; 
 	private static final String LABEL_NUMBER    = "Visitors number"; 
@@ -44,10 +62,22 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String LABEL_SUCCESS   = "You booked your visit!"; 
 	private static final String LABEL_VISITOR   = "Visitors names: "; 
 	
+	/**
+	 * Radio button labels
+	 */
+	private static final String YES             = "Yes";
+	private static final String NO              = "No";
+	
+	/**
+	 * Button labels
+	 */
 	private static final String NEXT_STEP       = "Next"; 
 	private static final String SAVE            = "Save";
 	private static final String NEXT_BOOKING    = "Next booking"; 
 
+	/**
+	 * Error messages
+	 */
 	private static final String ERROR_EMPTY_NAME      = "Name can not be empty";
 	private static final String ERROR_EMPTY_DATE      = "Date can not be empty";
 	private static final String ERROR_DATE_IN_PAST    = "Choose a date in the future";
@@ -58,6 +88,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String ERROR_REDUCTION       = "Tell if you ask for reduction";
 	private static final String ERROR_SYSTEM          = "System error";
 	
+	/**
+	 * Status messages
+	 */
 	private static final String STATUS_TITLE          = "Your visit: ";
 	private static final String STATUS_NAME           = "Name: ";
 	private static final String STATUS_DATE           = "Date: ";
@@ -66,47 +99,89 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	private static final String STATUS_REDUCTION      = "Reduction requested: ";
 	private static final String STATUS_VISITOR        = "Visitor ";
 	
-	private static final String YES = "Yes";
-	private static final String NO  = "No";
-	
+	/**
+	 * Currency name
+	 */
 	private static final String CURRENCY = "euro";
 
-	final static String[] steps = {"NAME", "DATE", "NUMBER", "GUIDE", "REDUCTION", "PRICE", "SUCCESS"};
+	/**
+	 * Steps of booking process
+	 */
+	private final static String[] steps = {"NAME", "DATE", "NUMBER", "GUIDE", "REDUCTION", "PRICE", "SUCCESS"};
 	
-	// Current step
+	/**
+	 * Current step
+	 */
 	int step = 0;
 	
-	// Reusable GUI elements:
+	/**
+	 * Reusable GUI elements:
+	 */
 	
-	// Error label
+	/**
+	 * Error label {@link JLabel}
+	 */
 	private JLabel errorLabel;
 	
-    // Status 
+    /**
+     * New visit's info
+     * List {@link DefaultListModel<String>} of 
+     * status lines: one visit property per line
+     */
     private DefaultListModel<String> statusList;
-    private JPanel listPane;
     
-	// Current field label
+    /**
+     * Pane {@link JPanel} to place status text
+     */
+    private JPanel statusPane;
+    
+	/**
+	 * Current text field label {@link JLabel}
+	 */
 	private JLabel label;
 	
-	// Text field
+	/**
+	 *  Text field {@link TextField}
+	 */
 	private TextField textField;
 	
-	// Yes/No radio buttons
+	/**
+	 *  Yes/No radio buttons {@link JRadioButton}
+	 */
     private JRadioButton yesRadio;
     private JRadioButton noRadio;
 	  
-    // Next button
+    /**
+     *  Next-step-button {@link JButton}
+     */
 	private JButton nextButton;
 	
-    // Visit to book
+    /**
+     * Visit to book {@link Visit}
+     */
     private Visit visit;
     
-    // List of visitors names
+    /**
+     * Collection of visitors names {@link Vector<String>}
+     */
     private Vector<String> visitors;
     
-    // Storage to save visit
+    /**
+     *  {@link Storage} to save visit
+     */
     private Storage storage;
     
+    /**
+     * Constructor
+     * Instantiates class variables
+     * Creates layout
+     * Shows first step view
+     * 
+     * @see #makeLayout()
+     * @see #showStep(String)
+     * 
+     * @param storage
+     */
 	public BookPanel(Storage storage) 
 	{
 		visit = new Visit();
@@ -116,12 +191,57 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		showStep("NAME");
 	}
 
-    // Listeners interface methods
+	/**
+	 * Creates GUI layout,
+	 * that consists of three parts:
+	 * Status, Input and Next-button Panels
+	 * 
+	 * Status panel shows booking progress and error messages
+	 * Input panel contains text field and radio buttons
+	 * Next-button panel contains the Next-button 
+	 * to fire next step action event
+	 *
+	 * @see #initStatusPanel()
+	 * @see #initInputPanel()
+	 * @see #initNextButtonPanel()
+	 */
+	private void makeLayout()
+	{
+		this.setLayout(new BorderLayout());		
+		
+		// North panel
+		initStatusPanel();
+		
+		// Center panel
+		initInputPanel();
+				
+		// South panel
+		initNextButtonPanel();
+	}
+	
+    /**
+     *  Listeners interface methods
+     */
+	
+	/**
+	 * Action performed
+	 * 
+	 * Reads and executes command in response 
+	 * on {@link ActionEvent}
+	 * 
+	 * @see #execute(String)
+	 */
 	public void actionPerformed(ActionEvent e) 
 	{
 		execute(nextButton.getActionCommand());
 	}	
 	
+	/**
+	 * Key pressed
+	 * 
+	 * Reads and executes command in response 
+	 * on {@link KeyEvent}
+	 */
     public void keyPressed(KeyEvent e) 
     {
         if (e.getKeyCode()==KeyEvent.VK_ENTER){
@@ -132,11 +252,24 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
     public void keyReleased(KeyEvent arg0) {}
     public void keyTyped(KeyEvent arg0) {}
     
+    /**
+     * Executes event actions fired by 
+     * user interaction with GUI
+     * 
+     * @see #acceptName()
+     * @see #acceptDate()
+     * @see #acceptNumber()
+     * @see #acceptGuide()
+     * @see #acceptReduction()
+     * @see #acceptVisitor()
+     * 
+     * @param action
+     */
     private void execute(String action)
     {
 		switch(action) {
 		case "NEW":
-			renewStatusPanel();
+			renewStatusPane();
 			step = 0;
 			visit = new Visit();
 			visitors = new Vector<String>();
@@ -166,6 +299,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
     }
 
+    /**
+     * Takes visit's name from input
+     */
 	private void acceptName() {
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_NAME);
@@ -178,6 +314,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		showStep(steps[++step]);
 	}
 	
+	/**
+	 * Takes visit's date from input
+	 */
 	private void acceptDate() {
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_DATE);
@@ -201,6 +340,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes visitors number from user input
+	 */
 	private void acceptNumber()
 	{
 		if (textField.getText().length() == 0) {
@@ -223,6 +365,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes guide Yes/No answer
+	 */
 	private void acceptGuide()
 	{
 		if (yesRadio.isSelected()) {
@@ -238,6 +383,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Takes reduction Yes/No answer
+	 */
 	private void acceptReduction()
 	{
 		if (yesRadio.isSelected()) {
@@ -257,7 +405,10 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private boolean acceptVisitor()
+	/**
+	 * Takes next visitor's name
+	 */
+	private void acceptVisitor()
 	{
 		if (textField.getText().length() == 0) {
 			showError(ERROR_EMPTY_NAME);
@@ -278,10 +429,11 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 				showStep("VISITOR");
 			}
 		}
-		
-		return true;
 	}
 	
+	/**
+	 * Saves visit in {@link Storage}
+	 */
 	private void doSave()
 	{
 		try {
@@ -296,6 +448,11 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
+	/**
+	 * Displays current step view
+	 * 
+	 * @param stepName Current step name
+	 */
 	private void showStep(String stepName) 
 	{
 		switch (stepName) {
@@ -354,21 +511,35 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		}
 	}
 	
-	private void renewStatusPanel()
+	/**
+	 * Renews status pane {@link #statusPane}
+	 * when user chooses to book next visit 
+	 */
+	private void renewStatusPane()
 	{
 		statusList.removeAllElements();
 		statusList.addElement(STATUS_TITLE);
 		errorLabel.setVisible(false);
-		listPane.setVisible(false);
+		statusPane.setVisible(false);
 	}
 	
+	/**
+	 * Shows booking progress status info
+	 * 
+	 * @param line Next line to add to status info
+	 */
 	private void showStatus(String line)
 	{
 		errorLabel.setVisible(false);
 		statusList.addElement(line);
-		listPane.setVisible(true);
+		statusPane.setVisible(true);
 	}
 	
+	/**
+	 * Displays error message when input is invalid
+	 * 
+	 * @param message Error message
+	 */
 	private void showError(String message)
 	{
 		errorLabel.setText(message);
@@ -376,22 +547,8 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 	}
 	
 	/**
-	 * Make general layout
+	 * Initiates Status panel elements
 	 */
-	private void makeLayout()
-	{
-		this.setLayout(new BorderLayout());		
-		
-		// North panel
-		initStatusPanel();
-		
-		// Center panel
-		initInputPanel();
-				
-		// South panel
-		initNextButtonPanel();
-	}
-	
 	private void initStatusPanel()
 	{
 		// Error
@@ -413,21 +570,24 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		list.setBorder(new EmptyBorder(10, 10, 10, 10));
 		JScrollPane listScroller = new JScrollPane(list);
 		listScroller.setAlignmentX(CENTER_ALIGNMENT);
-	    listPane = new JPanel();
-		listPane.add(listScroller);
-		listPane.setVisible(false);
+	    statusPane = new JPanel();
+		statusPane.add(listScroller);
+		statusPane.setVisible(false);
 		
 		JPanel northPnl  = new JPanel();
 		northPnl.setLayout(new BoxLayout(northPnl, BoxLayout.Y_AXIS));
 		northPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
 		
 		northPnl.add(errorLabel);
-		northPnl.add(listPane);
+		northPnl.add(statusPane);
 			
 		
 		add(northPnl, BorderLayout.NORTH);
 	}
 	
+	/**
+	 * Initiates Input panel elements
+	 */
 	private void initInputPanel()
 	{
 		JPanel centerPnl = new JPanel();
@@ -460,6 +620,9 @@ public class BookPanel extends JPanel implements ActionListener, KeyListener {
 		add(centerPnl, BorderLayout.CENTER);	
 	}	
 	
+	/**
+	 * Initiates Next-button-panel elements
+	 */
 	private void initNextButtonPanel()
 	{	
 		nextButton = new JButton(NEXT_STEP);
