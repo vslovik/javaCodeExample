@@ -1,6 +1,7 @@
 package console;
 
 import java.util.InputMismatchException;
+import java.util.ListIterator;
 import java.util.Scanner;
 import java.util.Date;
 import java.lang.reflect.InvocationTargetException;
@@ -12,17 +13,39 @@ import storage.Storage;
 import storage.StorageException;
 import storage.Visit;
 
+/** 
+ * The {@code Client} class serves to provide users with 
+ * text interface to access visits storage with options
+ * to list, book, cancel and find visits.
+ * 
+ * All language related information is grouped in 
+ * language constants sets that might ease localization 
+ * of the program. 
+ * 
+ * Class contains public methods to read and validate 
+ * user input, private methods that wrap access to the 
+ * storage, and methods that visualize information.
+ * 
+ * @author  Valeriya Slovikovskaya
+*/
+
 public class Client {
 
+	/**
+	 * Maximum visits number to display
+	 */
 	private static final int MAX_VISITS_TO_DISPLAY = 20;
 	
-	private static final String MENU_LIST   = "[L]ist visits";
-	private static final String MENU_BOOK   = "[B]ook visit";
-	private static final String MENU_CANCEL = "[C]ancel visit";
-	private static final String MENU_FIND   = "[F]ind visit";
-	private static final String MENU_SAVE   = "[S]ave";
-	private static final String MENU_EXIT   = "[E]xit";
-	private static final String MENU_CHOOSE = "Choose: ";
+	/**
+	 * Text constants
+	 */
+	private static final String MENU_LIST             = "[L]ist visits";
+	private static final String MENU_BOOK             = "[B]ook visit";
+	private static final String MENU_CANCEL           = "[C]ancel visit";
+	private static final String MENU_FIND             = "[F]ind visit";
+	private static final String MENU_SAVE             = "[S]ave";
+	private static final String MENU_EXIT             = "[E]xit";
+	private static final String MENU_CHOOSE           = "Choose: ";
 	
 	private static final String MENU_SHOW_LAST        = "Show      [L]ast visits";
 	private static final String MENU_SEARCH_BY_NAME   = "Search by [N]ame";
@@ -69,17 +92,49 @@ public class Client {
 	private static final String ERROR_SYSTEM          = "System error";
 	private static final String ERROR_CANCEL          = "Wrong visit number. Choose visit to cancel";
 	
+	/** 
+	 * {@link Visit} class instance that serves to 
+	 * collect data of visit to book or to search 
+	 * in the storage
+	 */
 	private Visit visit;
+	
+	/**
+	 * Collection of visits retrieved from the storage
+	 */
 	private Vector<Visit> visits;
+	
+	/**
+	 *  Text scanner instance to read and parse user input
+	 */
 	private Scanner input;
+	
+	/**
+	 * {@link Storage} instance
+	 */
 	private Storage storage;
+	
+	/**
+	 * "If storage changed?" flag used to 
+	 * prevent storage access in case 
+	 * no visits are booked or cancelled
+	 */
 	private boolean changed = false; 
 	
+	/**
+	 * Main method: instantiate the {@code Client}
+	 * and display the main menu
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		Client client  = new Client();
 		client.makeChoice();	
 	}
 
+	/** 
+	 * Class constructor
+	 */
 	public Client()
 	{	
 		input   = new Scanner(System.in);
@@ -88,6 +143,9 @@ public class Client {
 		visits  = new Vector<Visit>();
 	}
 	
+	/**
+	 * Main menu
+	 */
 	public void makeChoice()
 	{
 		char choice;
@@ -106,7 +164,7 @@ public class Client {
 			switch (choice) {
 			case 'L':
 				find();
-				list();
+				listVisits();
 				break;
 			case 'B':
 				book();
@@ -116,7 +174,7 @@ public class Client {
 				break;
 			case 'F':
 				search();
-				listMore();
+				listVisitsMore();
 				break;
 			case 'S':
 				save();
@@ -128,6 +186,12 @@ public class Client {
 		} while (choice != 'E');
 	}
 	
+	/**
+	 * Terminates the program
+	 * 
+	 * Asks if changes should be saved
+	 * on program termination
+	 */
 	private void exit() {
 		if(changed) {
 			char answer;
@@ -143,6 +207,14 @@ public class Client {
 		input.close();
 	}
 	
+	/**
+	 * Storage lookup with options
+	 * to display last {@code MAX_VISITS_TO_DISPLAY} visits 
+	 * or search visits by name and date
+	 * 
+	 * In any case no more than {@code MAX_VISITS_TO_DISPLAY}
+	 * displayed for usability sake
+	 */
 	private void search() {
 		visit = new Visit();
 		char choice;
@@ -170,6 +242,12 @@ public class Client {
 		} while (choice != 'L' && choice != 'N' && choice != 'D');
 	}
 
+	/**
+	 * Implements visit cancellation in two steps: 
+	 * 1.  lookup for visits
+	 * 2.a pick up one visit in case several visits are found
+	 * 2.b confirm cancellation in case only one visit is found
+	 */
 	private void cancel() {
 		visit = new Visit();
 		search();
@@ -185,6 +263,9 @@ public class Client {
 		}
 	}
 
+	/**
+	 * Ask for confirmation of visit cancellation
+	 */
 	private void confirmToCancel() {
 		char answer;
 		do {
@@ -198,6 +279,11 @@ public class Client {
 		} while (answer != 'Y' && answer != 'N');
 	}
 	
+	/**
+	 * Reads order number of visit in the list
+	 * to be cancelled, validate it, accepts 
+	 * input or shows error message
+	 */
 	private void pickToCancel() 
 	{
 		boolean ok;
@@ -209,9 +295,16 @@ public class Client {
 		} while (!ok);
 	}
 	
+	/**
+	 * Enumerates found visits, asks user
+	 * to choose one visit from the list 
+	 * to be cancelled
+	 * 
+	 * @return true in case of valid input false otherwise
+	 */
 	private boolean askWhatVisitToCancel() 
 	{
-		enumerate();
+		enumerateVisits();
 		System.out.println(LABEL_CANCEL);
 		try {
 			String text = input.nextLine();
@@ -235,23 +328,43 @@ public class Client {
 		return true;
 	}
 	
-	// ============= storage operations =====================//
+	/**
+	 * ============= storage operations =====================
+	 */
 	
+	/**
+	 * Retrieves last {@code MAX_VISITS_TO_DISPLAY}
+	 * from the storage
+	 */
 	private void find()
 	{
 		visits = storage.last(MAX_VISITS_TO_DISPLAY);
 	}
 	
+	/**
+	 * Searches visits by name
+	 * 
+	 * @param name Visit's name
+	 */
 	private void find(String name)
 	{
 		visits = storage.get(visit.getName());
 	}
 	
+	/**
+	 * Searches visit by date
+	 * 
+	 * @param date Visit's date
+	 */
 	private void find(Date date)
 	{
 		visits = storage.get(visit.getDate());
 	}
 	
+	/**
+	 * Save booked and cancelled visits,
+	 * displays success or error message
+	 */
 	private void save()
 	{
 		if (storage.save()) {
@@ -261,6 +374,9 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Remove visit, displays success or error message
+	 */
 	private void delete(){
 		try {
 			storage.delete(visit);
@@ -272,9 +388,18 @@ public class Client {
 		}
 	}
 
-	// =========== display ==================//
+	/**
+	 * ================== Visualization ==================
+	 */
 
-	private void enumerate() {
+	/**
+	 * Enumerates {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Shows ordered list
+	 * 
+	 * Visits are sorted by date in descending order
+	 * List does not include visitors names
+	 */
+	private void enumerateVisits() {
 		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
 		System.out.println(String.format(LABEL_LAST_VISITS));
 		int i = 0;
@@ -289,7 +414,14 @@ public class Client {
 		}
 	}
 
-	private void list() {
+	/**
+	 * Lists {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Shows unordered list
+	 * 
+	 * Visits are sorted by date in descending order
+	 * List does not include visitors names
+	 */
+	private void listVisits() {
 		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
 		System.out.println(String.format(LABEL_LAST_VISITS));
 		int i = 0;
@@ -303,7 +435,14 @@ public class Client {
 		}
 	}
 	
-	private void listMore() {
+	/**
+	 * Lists {@MAX_VISITS_TO_DISPLAY} from the collection of visits found
+	 * Shows unordered list
+	 * 
+	 * Visits are sorted by date in descending order
+	 * List includes visitors names for guided visits
+	 */
+	private void listVisitsMore() {
 		System.out.println(LABEL_VISITS_NUMBER + Integer.toString(visits.size()));
 		System.out.println(String.format(LABEL_LAST_VISITS));
 		int i = 0;
@@ -323,7 +462,10 @@ public class Client {
 		}
 	}
 	
-	private void show() {
+	/**
+	 * Shows all information of booked visit
+	 */
+	private void showVisit() {
 		System.out.println(LABEL_YOUR_VISIT);
 		System.out.println(String.format("%-20s", VISIT_DATE) + Visit.dateFormat.format(visit.getDate()));
 		System.out.println(String.format("%-20s", VISIT_NAME) + visit.getName());
@@ -336,7 +478,6 @@ public class Client {
 		}
 	}
 	
-	//=======================================//
 	
 	private void book() {
 		visit = new Visit();
@@ -344,7 +485,7 @@ public class Client {
 		try {
 			storage.put(visit);	
 			changed = true;
-			show();
+			showVisit();
 		} catch (StorageException e) {
 			System.out.println(ERROR_SYSTEM);
 		}
