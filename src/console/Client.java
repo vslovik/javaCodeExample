@@ -38,6 +38,9 @@ public class Client {
 	/**
 	 * Text constants
 	 */
+	/**
+	 * Menu
+	 */
 	private static final String MENU_LIST             = "[L]ist visits";
 	private static final String MENU_BOOK             = "[B]ook visit";
 	private static final String MENU_CANCEL           = "[C]ancel visit";
@@ -50,27 +53,30 @@ public class Client {
 	private static final String MENU_SEARCH_BY_NAME   = "Search by [N]ame";
 	private static final String MENU_SEARCH_BY_DATE   = "Search by [D]ate";
 	
+	/**
+	 * Step's labels
+	 */
 	private static final String LABEL_NAME            = "Type name: ";
 	private static final String LABEL_DATE            = "Date dd/mm/yyyy: ";
 	private static final String LABEL_VISITORS_NUMBER = "Type visitors number: ";
 	private static final String LABEL_RETRY           = "Retry";
 	private static final String LABEL_GUIDE           = "Do you need a guide? Y/N: ";
-	private static final String LABEL_REDUCTION_INFO  = "With visitors number more than %s you have right for reduction";
+	private static final String LABEL_REDUCTION_INFO  = "With visitors number more than %s you can ask for reduction.";
 	
-	private static final String LABEL_REDUCTION_QUESTION = "Would you ask for reduction? Y/N:";
+	private static final String LABEL_REDUCTION_QUESTION = "Do you want to ask for reduction? Y/N:";
 	
 	private static final String LABEL_VISITORS        = "Type all visitor names: ";
-	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input before typing all names";
-	private static final String LABEL_NO_VISITS       = "No visits booked";
-	private static final String LABEL_NO_VISITS_FOUND = "No visits found";
+	private static final String LABEL_VISITORS_EXIT   = "Type Exit to interrupt input before typing all names.";
+	private static final String LABEL_NO_VISITS       = "No visits booked.";
+	private static final String LABEL_NO_VISITS_FOUND = "No visits found.";
 	private static final String LABEL_YOUR_VISIT      = "Your visit: ";
 	private static final String LABEL_SAVE            = "Do you want to save changes? Y/N: ";
-	private static final String LABEL_CHANGES_SAVED   = "Changes saved";
+	private static final String LABEL_CHANGES_SAVED   = "Changes saved.";
 	private static final String LABEL_CANCEL_SUCCESS  = "You've just canceled the visit (Not saved yet): ";
 	private static final String LABEL_LAST_VISITS     = "Last visits: ";
 	private static final String LABEL_VISITS_NUMBER   = "Number of visits found: ";
 	private static final String LABEL_CANCEL          = "Choose visit to cancel: ";
-	private static final String LABEL_CANCEL_THIS     = "Cancel this visit?";
+	private static final String LABEL_CANCEL_THIS     = "Cancel this visit? Y/N: ";
 	
 	private static final String VISIT_DATE            = "Date: ";
 	private static final String VISIT_NAME            = "Name: ";
@@ -79,17 +85,25 @@ public class Client {
 	private static final String VISIT_PRICE           = "Price: ";
 	private static final String VISIT_VISITORS        = "Visitors names: ";
 	
-	private static final String ERROR_EMPTY_NAME      = "Name can not be empty";
-	private static final String ERROR_INVALID_NAME    = "Invalid name";
-	private static final String ERROR_EMPTY_DATE      = "Date can not be empty";
-	private static final String ERROR_DATE_IN_PAST    = "Choose a date in the future";
-	private static final String ERROR_INVALID_DATE    = "Invalid date";
-	private static final String ERROR_EMPTY_NUMBER    = "Visitors number can not be empty";
-	private static final String ERROR_INVALID_NUMBER  = "Invalid number";
-	private static final String ERROR_GUIDE           = "You did not type visitors names, guide can not be assigned to your visit";
-	private static final String ERROR_REDUCTION       = "With visitors number less than %s you have no right for reduction";
-	private static final String ERROR_SYSTEM          = "System error";
-	private static final String ERROR_CANCEL          = "Wrong visit number. Choose visit to cancel";
+	private static final String YES = "yes";
+	private static final String NO  = "no";
+	
+	private static final String COMMAND_EXIT = "Exit";
+	
+	/**
+	 * Error messages
+	 */
+	private static final String ERROR_EMPTY_NAME      = "Name can not be empty.";
+	private static final String ERROR_INVALID_NAME    = "Invalid name.";
+	private static final String ERROR_EMPTY_DATE      = "Date can not be empty.";
+	private static final String ERROR_DATE_IN_PAST    = "Choose a date in the future.";
+	private static final String ERROR_INVALID_DATE    = "Invalid date.";
+	private static final String ERROR_EMPTY_NUMBER    = "Visitors number can not be empty.";
+	private static final String ERROR_INVALID_NUMBER  = "Invalid number.";
+	private static final String ERROR_GUIDE           = "You did not type visitors names, guide can not be assigned to your visit.";
+	private static final String ERROR_REDUCTION       = "With visitors number less than %s you have no right to ask for reduction.";
+	private static final String ERROR_SYSTEM          = "System error.";
+	private static final String ERROR_CANCEL          = "Wrong visit number. Choose visit to cancel.";
 	
 	/** 
 	 * {@link Visit} class instance that serves to 
@@ -279,6 +293,7 @@ public class Client {
 			confirmToCancel();
 		} else {
 			pickToCancel(); 
+			delete();
 		}
 	}
 
@@ -288,7 +303,7 @@ public class Client {
 	private void confirmToCancel() {
 		char answer;
 		do {
-			System.out.println(LABEL_CANCEL_THIS);
+			listVisits();
 			System.out.println(LABEL_CANCEL_THIS);
 			answer = input.next().charAt(0);
 			input.nextLine();
@@ -307,10 +322,7 @@ public class Client {
 	{
 		boolean ok;
 		do {
-			ok = true;
-			askWhatVisitToCancel(); 
-			visit = visits.get(0);
-			delete();
+			ok = askWhatVisitToCancel();	 
 		} while (!ok);
 	}
 	
@@ -331,7 +343,7 @@ public class Client {
 				retry(ERROR_CANCEL);
 				return false;
 			}
-			int index = Integer.parseInt(text) - 1;
+			int index = Integer.parseInt(text) - 1;		
 			if (index < 0) {
 				retry(ERROR_CANCEL);
 				return false;
@@ -486,14 +498,22 @@ public class Client {
 	 */
 	private void showVisit() {
 		System.out.println(LABEL_YOUR_VISIT);
-		System.out.println(String.format("%-20s", VISIT_DATE) + Visit.dateFormat.format(visit.getDate()));
-		System.out.println(String.format("%-20s", VISIT_NAME) + visit.getName());
-		System.out.println(String.format("%-20s", VISIT_VISITORS_NUMBER) + Integer.toString(visit.getVisitorNumber()));
-		System.out.println(String.format("%-20s", VISIT_GUIDE) + (visit.hasGuide() ? "guide" : ""));
-		System.out.println(String.format("%-20s", VISIT_PRICE) + visit.getPrice() + " euro" + (visit.hasReduction() ? " reduction " : ""));
-		System.out.println(VISIT_VISITORS);
-		for(String name : visit.getVisitorNames()) {
-			System.out.println("  " + name);
+		System.out.println(String.format("%-20s", VISIT_DATE)
+				+ Visit.dateFormat.format(visit.getDate()));
+		System.out.println(String.format("%-20s", VISIT_NAME)
+				+ visit.getName());
+		System.out.println(String.format("%-20s", VISIT_VISITORS_NUMBER)
+				+ Integer.toString(visit.getVisitorNumber()));
+		System.out.println(String.format("%-20s", VISIT_GUIDE)
+				+ (visit.hasGuide() ? YES : NO));
+		System.out.println(String.format("%-20s", VISIT_PRICE)
+				+ visit.getPrice() + " euro"
+				+ (visit.hasReduction() ? " (reduced) " : ""));
+		if( visit.getVisitorNames().size() > 0 ) {
+			System.out.println(VISIT_VISITORS);
+			for(String name : visit.getVisitorNames()) {
+				System.out.println("  " + name);
+			}
 		}
 	}
 	
@@ -518,13 +538,9 @@ public class Client {
 	 * reads and validates it
 	 */
 	private void askForData() {
-		boolean ok = false;
-		do {
-			ok = true;
-			askForNameDateNumber();
-			askForGuide();
-			askForReduction();
-		} while (!ok);
+		askForNameDateNumber();
+		askForGuide();
+		askForReduction();
 	}
 	
 	/**
@@ -552,7 +568,7 @@ public class Client {
 	 */
 	private void askForReduction() {
 		int visitorNumber = visit.getVisitorNumber();
-		if (visitorNumber > Visit.applyReductionTreshold) {
+		if (visitorNumber >= Visit.applyReductionTreshold) {
 			char answer;
 			do {
 				System.out.println(String.format(LABEL_REDUCTION_INFO, Visit.applyReductionTreshold));
@@ -560,7 +576,9 @@ public class Client {
 				answer = input.next().charAt(0);
 				input.nextLine();
 				if (answer == 'Y') {
-					askForVisitors();				
+					if(visit.getVisitorNames().size() == 0){
+						askForVisitors();	
+					}
 					if (visit.getVisitorNumber() < Visit.applyReductionTreshold) {
 						System.out.println(String.format(ERROR_REDUCTION, Visit.applyReductionTreshold));
 					} else {
@@ -580,17 +598,34 @@ public class Client {
 		System.out.println(LABEL_VISITORS_EXIT);
 		for (int i = 0; i < visit.getVisitorNumber(); i++) {
 			System.out.println(Integer.toString(i+1) + ": ");
-			String text = input.nextLine();
-			if ("Exit" == text) {
-				visit.setVisitorNumber(visitorNames.size());
-				break;
-			} else {
-				visitorNames.add(text);
-			}
+			
+			boolean ok = false;
+			do {
+				String text = input.nextLine();
+				if (text.equals(COMMAND_EXIT)) {
+					visit.setVisitorNumber(visitorNames.size());
+					break;
+				} else {
+
+					System.out.println(LABEL_NAME);
+					try {
+						if (text.length() == 0) {
+							retry(ERROR_EMPTY_NAME);
+						} else {
+							ok = true;
+							visitorNames.add(text);
+						}
+					} catch (InputMismatchException e) {
+						retry(ERROR_INVALID_NAME);
+					}
+				}
+			} while (!ok);
+			
 		}
 		visit.setVisitorNames(visitorNames);
 	}
 	
+
 	/**
 	 * Reads visit's name, date and visitors 
 	 * number from user input
